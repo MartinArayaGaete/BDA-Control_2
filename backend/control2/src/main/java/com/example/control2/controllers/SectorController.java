@@ -24,9 +24,15 @@ public class SectorController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    // GET ALL SECTORS
     @GetMapping
     public ResponseEntity<List<SectorResponseDTO>> getAllSectors() {
         List<SectorResponseDTO> sectorsList = sectorService.getAllSectors();
+
+        if (sectorsList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
         return ResponseEntity.ok(sectorsList);
     }
 
@@ -34,6 +40,12 @@ public class SectorController {
     @GetMapping("/stats/top-sector/{userId}")
     public ResponseEntity<SectorTaskCountProjection> getTopSector(@PathVariable Long userId) {
         SectorTaskCountProjection result = sectorService.getTopSectorInRadius(userId);
-        return result != null ? ResponseEntity.ok(result) : ResponseEntity.noContent().build();
+
+        // Si no hay sectores con tareas completadas en ese radio, devolvemos 204 No Content
+        if (result == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(result);
     }
 }

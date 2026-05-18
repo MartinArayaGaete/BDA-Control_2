@@ -32,7 +32,13 @@ public class TaskController {
     // GET ALL
     @GetMapping
     public ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
-        return ResponseEntity.ok(taskService.getAllTasks());
+        List<TaskResponseDTO> tasks = taskService.getAllTasks();
+
+        if (tasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(tasks);
     }
 
     // PUT (Update)
@@ -68,7 +74,13 @@ public class TaskController {
     // GET /api/tasks/stats/user/1
     @GetMapping("/stats/user/{userId}")
     public ResponseEntity<List<UserSectorStatsProjection>> getUserStats(@PathVariable Long userId) {
-        return ResponseEntity.ok(taskService.getUserStatsBySector(userId));
+        List<UserSectorStatsProjection> stats = taskService.getUserStatsBySector(userId);
+
+        if (stats.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(stats);
     }
 
     // ¿Cuál es la tarea más cercana al usuario (que esté pendiente)?
@@ -87,7 +99,15 @@ public class TaskController {
     // GET /api/tasks/stats/average-distance/1
     @GetMapping("/stats/average-distance/{userId}")
     public ResponseEntity<Double> getAverageDistance(@PathVariable Long userId) {
-        return ResponseEntity.ok(taskService.getAverageDistanceForUser(userId));
+        Double avgDistance = taskService.getAverageDistanceForUser(userId);
+
+        // Si el promedio es 0 y el service no encontró tareas, devolvemos No Content
+        // Nota: avgDistance ya viene como 0.0 desde el Service si es null
+        if (avgDistance == null || avgDistance == 0.0) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(avgDistance);
     }
 
 }

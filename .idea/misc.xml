@@ -6,6 +6,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/control2_backend/control2/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/control2/pom.xml" />
       </list>
     </option>
   </component>

@@ -1,5 +1,6 @@
 package com.example.control2.services;
 
+import com.example.control2.dtos.LoginResponseDTO;
 import com.example.control2.dtos.UserCreateDTO;
 import com.example.control2.dtos.UserResponseDTO;
 import com.example.control2.entities.UserEntity;
@@ -50,5 +51,20 @@ public class UserService {
 
         user.setStatus(UserStatus.DELETED);
         userRepository.save(user);
+    }
+
+
+    public LoginResponseDTO login(String username, String password) {
+        // Buscar al usuario por nombre
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Verificar password
+        if (!user.getPassword().equals(password)) {
+            throw new RuntimeException("Credenciales inválidas");
+        }
+
+        // Retornar datos básicos para la sesión
+        return new LoginResponseDTO(user.getId(), user.getUsername(), "Login exitoso");
     }
 }

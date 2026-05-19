@@ -106,6 +106,9 @@ Este documento contiene los endpoints disponibles en el backend para interactuar
 ### Sector con más tareas completadas en un radio de 2km
 - **URL:** `/api/sectors/stats/top-sector/{userId}`
 - **Método:** `GET`
+- **Nota:** `{userId}` es un parámetro de ruta. Debes reemplazarlo por un número (por ejemplo `1`), no enviar las llaves literalmente.
+- **Ejemplo:** `/api/sectors/stats/top-sector/1`
+- **Importante:** si no existen tareas con `status = "COMPLETED"` (y con `location` dentro de algún sector) en un radio de 2km del usuario, el endpoint devuelve `204 No Content`.
 - **Salida Esperada:**
 ```json
 {

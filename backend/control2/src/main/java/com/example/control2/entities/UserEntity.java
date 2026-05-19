@@ -4,7 +4,12 @@ import com.example.control2.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
+
+
+
 
 @Entity
 @Data
@@ -26,5 +31,6 @@ public class UserEntity {
     private UserStatus status = UserStatus.ACTIVE;
 
     @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
+    @JdbcTypeCode(SqlTypes.GEOMETRY) // <-- Esto fuerza el reconocimiento del tipo
     private Point location;
 }

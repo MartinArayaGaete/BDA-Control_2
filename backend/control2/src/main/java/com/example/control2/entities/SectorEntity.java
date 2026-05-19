@@ -19,4 +19,6 @@ public class SectorEntity {
 
     @Column(columnDefinition = "geometry(Polygon, 4326)")
     private Polygon geometry;
+
+
 }

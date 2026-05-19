@@ -37,4 +37,8 @@ public class TaskEntity {
     // Cada tarea tiene su propia ubicacion (Point)
     @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
     private Point location;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sector_id")
+    private SectorEntity sector;
 }

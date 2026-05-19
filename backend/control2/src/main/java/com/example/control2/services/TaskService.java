@@ -3,10 +3,12 @@ package com.example.control2.services;
 import com.example.control2.dtos.TaskCreateDTO;
 import com.example.control2.dtos.TaskResponseDTO;
 import com.example.control2.dtos.UserSectorStatsProjection;
+import com.example.control2.entities.SectorEntity;
 import com.example.control2.entities.TaskEntity;
 import com.example.control2.entities.UserEntity;
 import com.example.control2.enums.TaskStatus;
 import com.example.control2.mappers.TaskMapper;
+import com.example.control2.repositories.SectorRepository;
 import com.example.control2.repositories.TaskRepository;
 import com.example.control2.repositories.UserRepository;
 import org.locationtech.jts.geom.Point;
@@ -27,18 +29,27 @@ public class TaskService {
     @Autowired
     private TaskMapper taskMapper;
 
+    @Autowired
+    private SectorRepository sectorRepository;
+
     // CREATE
     public TaskResponseDTO createTask(TaskCreateDTO dto) {
+        // Validar usuario opcional
         UserEntity user = null;
         if (dto.getUserId() != null) {
             user = userRepository.findById(dto.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
         }
 
-        // Map (Pasa DTO y User, ya no Sector)
+        // Mapear a entidad
         TaskEntity newTask = taskMapper.toEntity(dto, user);
         newTask.setStatus(TaskStatus.PENDING);
 
+        // Asigna el sector si es que cae en uno
+        SectorEntity sector = sectorRepository.findSectorByLocation(newTask.getLocation());
+        newTask.setSector(sector);
+
+        // Guardar
         TaskEntity savedTask = taskRepository.save(newTask);
         return taskMapper.toDTO(savedTask);
     }

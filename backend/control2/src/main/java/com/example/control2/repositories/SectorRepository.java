@@ -26,4 +26,15 @@ public interface SectorRepository extends JpaRepository<SectorEntity, Long> {
     SectorTaskCountProjection findTopSectorWithCompletedTasksInRadius(
             @Param("userLocation") org.locationtech.jts.geom.Point userLocation
     );
+
+
+    /**
+     * Encuentra el sector en el que cae un punto geográfico específico.
+     */
+    @Query(value = """
+            SELECT * FROM sectors s
+            WHERE ST_Contains(s.geometry, :location)
+            LIMIT 1
+            """, nativeQuery = true)
+    SectorEntity findSectorByLocation(@Param("location") org.locationtech.jts.geom.Point location);
 }

@@ -12,7 +12,7 @@ public class TaskCreateDTO {
     private TaskStatus status;
     private Long userId;
 
-    // Coordenadas exactas de la tarea
+    // Coordenadas
     private double longitude;
     private double latitude;
 }

@@ -14,7 +14,11 @@ public class TaskResponseDTO {
     private Long userId;
     private String userName;
 
-    // Coordenadas extraídas de la BD
+    // se llena solo si cae en un sector
+    private Long sectorId;
+    private String sectorName;
+
+    // Coordenadas
     private double longitude;
     private double latitude;
 }

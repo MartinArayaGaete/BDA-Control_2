@@ -15,7 +15,7 @@ public class TaskMapper {
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
-    // DTO + User -> Entity (Sector eliminado)
+    // DTO + User -> Entity
     public TaskEntity toEntity(TaskCreateDTO dto, UserEntity user) {
         TaskEntity entity = new TaskEntity();
         entity.setTitle(dto.getTitle());
@@ -24,7 +24,7 @@ public class TaskMapper {
         entity.setStatus(dto.getStatus());
         entity.setUser(user);
 
-        // Transformación Espacial
+        // Transformación Espacial: Generamos el punto desde lon/lat
         Coordinate coordinate = new Coordinate(dto.getLongitude(), dto.getLatitude());
         Point location = geometryFactory.createPoint(coordinate);
         entity.setLocation(location);
@@ -41,9 +41,16 @@ public class TaskMapper {
         dto.setDueDate(entity.getDueDate());
         dto.setStatus(entity.getStatus());
 
+        // Datos del Usuario
         if (entity.getUser() != null) {
             dto.setUserId(entity.getUser().getId());
             dto.setUserName(entity.getUser().getUsername());
+        }
+
+        // Si el Service encontró un sector mediante ST_Contains, lo devolvemos aquí
+        if (entity.getSector() != null) {
+            dto.setSectorId(entity.getSector().getId());
+            dto.setSectorName(entity.getSector().getName());
         }
 
         // Extracción Espacial
@@ -66,7 +73,7 @@ public class TaskMapper {
             entity.setUser(user);
         }
 
-        // Actualizar coordenadas si cambian
+        // Actualizar posición
         Coordinate coordinate = new Coordinate(dto.getLongitude(), dto.getLatitude());
         Point location = geometryFactory.createPoint(coordinate);
         entity.setLocation(location);

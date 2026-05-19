@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4
     container_name: taskmanager_db
     environment:
       POSTGRES_DB: postgres_db
@@ -10,6 +10,39 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+
+  backend:
+    image: maven:3.9-eclipse-temurin-17
+    container_name: taskmanager_backend
+    working_dir: /workspace
+    volumes:
+      - ../backend/control2:/workspace
+      - maven_cache:/root/.m2
+    command: mvn spring-boot:run
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  frontend:
+    image: node:20-alpine
+    container_name: taskmanager_frontend
+    working_dir: /app
+    volumes:
+      - ../frontend:/app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
+  maven_cache:

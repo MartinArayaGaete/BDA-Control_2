@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     @Autowired
@@ -39,13 +40,18 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserCreateDTO loginDto) {
         try {
-            // Reutilizamos el DTO de creación porque tiene username y password
+            // Reuse the create DTO because it includes username and password
             LoginResponseDTO response = userService.login(loginDto.getUsername(), loginDto.getPassword());
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            // Si falla el login, devolvemos 401 con el mensaje de error
+            // If login fails, return 401 with the error message
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
+    }
+
+    @GetMapping("/login")
+    public ResponseEntity<String> loginHelp() {
+        return ResponseEntity.ok("Use POST /api/users/login with JSON body.");
     }
 
 

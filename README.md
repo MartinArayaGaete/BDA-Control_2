@@ -1,7 +1,7 @@
 # API Documentation - Control 2
 
 Este documento contiene los endpoints disponibles en el backend para interactuar mediante Postman o cualquier otro cliente HTTP.
-
+-> 
 **Base URL:** `http://localhost:8080`
 
 ---

@@ -20,7 +20,7 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(unique = true)
     private String username;
 
     @Column
@@ -31,6 +31,6 @@ public class UserEntity {
     private UserStatus status = UserStatus.ACTIVE;
 
     @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
-    @JdbcTypeCode(SqlTypes.GEOMETRY) // <-- Esto fuerza el reconocimiento del tipo
+    @JdbcTypeCode(SqlTypes.GEOMETRY)
     private Point location;
 }

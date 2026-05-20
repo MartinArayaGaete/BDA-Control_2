@@ -136,4 +136,15 @@ public class TaskService {
         Double avg = taskRepository.getAverageDistanceOfCompletedTasks(user.getLocation());
         return (avg != null) ? avg : 0.0;
     }
+
+    // SEARCH AND FILTER
+    public List<TaskResponseDTO> searchTasks(TaskStatus status, String keyword) {
+        // Evitamos el error "bytea" de PostgreSQL:
+        // Si el keyword es null, pasamos "", lo que generará un LIKE '%%' (trae todo).
+        String safeKeyword = (keyword == null) ? "" : keyword;
+
+        return taskRepository.searchTasks(status, safeKeyword).stream()
+                .map(taskMapper::toDTO)
+                .toList();
+    }
 }

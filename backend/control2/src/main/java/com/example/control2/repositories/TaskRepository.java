@@ -52,4 +52,18 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
             WHERE t.status = 'COMPLETED'
             """, nativeQuery = true)
     Double getAverageDistanceOfCompletedTasks(@Param("userLocation") Point userLocation);
+
+
+
+    /**
+     * Búsqueda Filtra por estado y/o por palabra clave en título o descripción.
+     */
+    @Query("SELECT t FROM TaskEntity t WHERE " +
+            "(:status IS NULL OR t.status = :status) AND " +
+            "(LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<TaskEntity> searchTasks(
+            @Param("status") com.example.control2.enums.TaskStatus status,
+            @Param("keyword") String keyword
+    );
 }

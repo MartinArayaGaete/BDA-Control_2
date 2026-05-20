@@ -110,4 +110,19 @@ public class TaskController {
         return ResponseEntity.ok(avgDistance);
     }
 
+    // GET /api/tasks/search?status=PENDING&keyword=luz
+    @GetMapping("/search")
+    public ResponseEntity<List<TaskResponseDTO>> searchTasks(
+            @RequestParam(required = false) com.example.control2.enums.TaskStatus status,
+            @RequestParam(required = false) String keyword) {
+
+        List<TaskResponseDTO> results = taskService.searchTasks(status, keyword);
+
+        if (results.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(results);
+    }
+
 }

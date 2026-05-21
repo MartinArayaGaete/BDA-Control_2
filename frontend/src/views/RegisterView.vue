@@ -1,8 +1,10 @@
 <template>
-  <main class="page">
-    <h1>Registro</h1>
-    <RegisterForm />
-  </main>
+  <v-main>
+    <main class="page">
+      <h1>Registro</h1>
+      <RegisterForm />
+    </main>
+  </v-main>
 </template>
 
 <script setup>

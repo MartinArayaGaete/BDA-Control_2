@@ -1,15 +1,27 @@
 <template>
   <main class="page">
-    <h1>Principal</h1>
-    <p>Buenas, aun no hay nada, vuelva en 15 minutos, si no hay nada lealo de nuevo.</p>
-    <v-btn class="logout" color="primary" variant="elevated" @click="goLogin">
-      Cerrar sesion
-    </v-btn>
+    <v-container>
+      <v-row>
+
+        <v-col>
+          <v-sheet class="pa-2">
+          </v-sheet>
+        </v-col>
+
+        <v-col>
+          <v-sheet class="pa-2">
+            <MapReadOnly />
+          </v-sheet>
+        </v-col>
+
+      </v-row>
+    </v-container>
   </main>
 </template>
 
 <script setup>
 import { useRouter } from "vue-router";
+import MapReadOnly from "../components/MapReadOnly.vue";
 
 const router = useRouter();
 

@@ -1,8 +1,10 @@
 <template>
-  <main class="page">
-    <h1>Login</h1>
-    <LoginForm />
-  </main>
+  <v-main>
+    <main class="page">
+      <h1>Login</h1>
+      <LoginForm />
+    </main>
+  </v-main>
 </template>
 
 <script setup>

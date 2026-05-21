@@ -2,6 +2,7 @@ package com.example.control2.controllers;
 
 import com.example.control2.dtos.TaskCreateDTO;
 import com.example.control2.dtos.TaskResponseDTO;
+import com.example.control2.dtos.TasksForUserPerSectorProjection;
 import com.example.control2.dtos.UserSectorStatsProjection;
 import com.example.control2.services.SectorService;
 import com.example.control2.services.TaskService;
@@ -101,8 +102,7 @@ public class TaskController {
     public ResponseEntity<Double> getAverageDistance(@PathVariable Long userId) {
         Double avgDistance = taskService.getAverageDistanceForUser(userId);
 
-        // Si el promedio es 0 y el service no encontró tareas, devolvemos No Content
-        // Nota: avgDistance ya viene como 0.0 desde el Service si es null
+        //avgDistance viene como 0.0 desde el Service si es null
         if (avgDistance == null || avgDistance == 0.0) {
             return ResponseEntity.noContent().build();
         }
@@ -123,6 +123,20 @@ public class TaskController {
         }
 
         return ResponseEntity.ok(results);
+    }
+
+
+    // ¿Cuántas tareas ha realizado cada usuario por sector?
+    // GET /api/tasks/stats/users-sectors
+    @GetMapping("/stats/users-sectors")
+    public ResponseEntity<List<TasksForUserPerSectorProjection>> getTasksForEveryUserPerSector() {
+        List<TasksForUserPerSectorProjection> stats = taskService.getTasksForEveryUserPerSector();
+
+        if (stats.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(stats);
     }
 
 }

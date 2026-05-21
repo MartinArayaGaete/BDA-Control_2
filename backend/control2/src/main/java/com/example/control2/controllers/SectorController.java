@@ -36,16 +36,34 @@ public class SectorController {
         return ResponseEntity.ok(sectorsList);
     }
 
-    // ¿Cuál es el sector con más tareas completadas en un radio de 2 kilómetros del usuario?
+    // ¿Cuál es el sector con más tareas completadas dentro de un radio de 5 km desde la ubicación del usuario?
+    // NOTA: Para cualquier cantidad de kilómetros ingresado
+    // GET /api/sectors/stats/top-sector/1?radiusKm=5.0
     @GetMapping("/stats/top-sector/{userId}")
-    public ResponseEntity<SectorTaskCountProjection> getTopSector(@PathVariable Long userId) {
-        SectorTaskCountProjection result = sectorService.getTopSectorInRadius(userId);
+    public ResponseEntity<SectorTaskCountProjection> getTopSector(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "2.0") double radiusKm) {
 
-        // Si no hay sectores con tareas completadas en ese radio, devolvemos 204 No Content
+        SectorTaskCountProjection result = sectorService.getTopSectorInRadius(userId, radiusKm);
+
         if (result == null) {
             return ResponseEntity.noContent().build();
         }
 
         return ResponseEntity.ok(result);
+    }
+
+
+    // ¿En qué sectores se concentran las tareas pendientes?
+    // GET /api/sectors/stats/concentration
+    @GetMapping("/stats/concentration")
+    public ResponseEntity<List<SectorTaskCountProjection>> getConcentration() {
+        List<SectorTaskCountProjection> results = sectorService.getConcentrationOfPendingTasks();
+
+        if (results.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(results);
     }
 }

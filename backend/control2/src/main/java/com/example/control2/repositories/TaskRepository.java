@@ -1,5 +1,6 @@
 package com.example.control2.repositories;
 
+import com.example.control2.dtos.TasksForUserPerSectorProjection;
 import com.example.control2.dtos.UserSectorStatsProjection;
 import com.example.control2.entities.TaskEntity;
 import org.locationtech.jts.geom.Point;
@@ -44,14 +45,15 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
     List<UserSectorStatsProjection> countCompletedTasksByUserPerSector(@Param("userId") Long userId);
 
     /**
-     * Promedio de distancia de las tareas completadas.
+     * ¿Cuál es el promedio de distancia de las tareas completadas respecto a la
+     * ubicación del usuario?
      */
     @Query(value = """
             SELECT AVG(ST_Distance(CAST(t.location AS geography), CAST(:userLocation AS geography)))
             FROM tasks t
             WHERE t.status = 'COMPLETED'
             """, nativeQuery = true)
-    Double getAverageDistanceOfCompletedTasks(@Param("userLocation") Point userLocation);
+    Double getAverageDistanceOfCompletedTasks(@Param("userLocation") org.locationtech.jts.geom.Point userLocation);
 
 
 
@@ -66,4 +68,25 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
             @Param("status") com.example.control2.enums.TaskStatus status,
             @Param("keyword") String keyword
     );
+
+
+    /**
+     * ¿Cuántas tareas ha realizado cada usuario por sector?
+     */
+    @Query(value = """
+            SELECT 
+                COUNT(t.id) AS taskCount, 
+                u.username AS username,
+                s.name AS sectorName
+            FROM users u
+            JOIN tasks t ON t.user_id = u.id
+            JOIN sectors s ON ST_Contains(s.geometry, t.location)
+            WHERE t.status = 'COMPLETED'
+            GROUP BY u.id, u.username, s.id, s.name
+            ORDER BY u.username ASC, taskCount DESC
+            """, nativeQuery = true)
+    List<TasksForUserPerSectorProjection> countTasksForEveryUserPerSector();
+
+
+
 }

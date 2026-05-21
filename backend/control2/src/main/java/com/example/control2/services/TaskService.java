@@ -2,6 +2,7 @@ package com.example.control2.services;
 
 import com.example.control2.dtos.TaskCreateDTO;
 import com.example.control2.dtos.TaskResponseDTO;
+import com.example.control2.dtos.TasksForUserPerSectorProjection;
 import com.example.control2.dtos.UserSectorStatsProjection;
 import com.example.control2.entities.SectorEntity;
 import com.example.control2.entities.TaskEntity;
@@ -134,17 +135,25 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Double avg = taskRepository.getAverageDistanceOfCompletedTasks(user.getLocation());
+
+        // Si no hay tareas completadas, AVG devuelve NULL.
         return (avg != null) ? avg : 0.0;
     }
 
     // SEARCH AND FILTER
     public List<TaskResponseDTO> searchTasks(TaskStatus status, String keyword) {
-        // Evitamos el error "bytea" de PostgreSQL:
-        // Si el keyword es null, pasamos "", lo que generará un LIKE '%%' (trae todo).
         String safeKeyword = (keyword == null) ? "" : keyword;
 
         return taskRepository.searchTasks(status, safeKeyword).stream()
                 .map(taskMapper::toDTO)
                 .toList();
     }
+
+    // STATS: Tareas completadas por cada usuario en cada sector
+    public List<TasksForUserPerSectorProjection> getTasksForEveryUserPerSector() {
+        return taskRepository.countTasksForEveryUserPerSector();
+    }
+
+
+
 }

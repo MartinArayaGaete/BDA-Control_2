@@ -42,10 +42,17 @@ public class SectorService {
                 .toList();
     }
 
-    public SectorTaskCountProjection getTopSectorInRadius(Long userId) {
+    public SectorTaskCountProjection getTopSectorInRadius(Long userId, double radiusKm) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return sectorRepository.findTopSectorWithCompletedTasksInRadius(user.getLocation());
+        // Convertimos km a metros para PostGIS
+        double radiusMeters = radiusKm * 1000;
+
+        return sectorRepository.findTopSectorWithCompletedTasksInRadius(user.getLocation(), radiusMeters);
+    }
+
+    public List<SectorTaskCountProjection> getConcentrationOfPendingTasks() {
+        return sectorRepository.getSpatialConcentrationOfPendingTasks();
     }
 }

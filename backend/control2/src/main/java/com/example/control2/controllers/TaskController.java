@@ -7,6 +7,7 @@ import com.example.control2.dtos.UserSectorStatsProjection;
 import com.example.control2.services.SectorService;
 import com.example.control2.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,14 +33,17 @@ public class TaskController {
 
     // GET ALL
     @GetMapping
-    public ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
-        List<TaskResponseDTO> tasks = taskService.getAllTasks();
+    public ResponseEntity<Page<TaskResponseDTO>> getAllTasks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        if (tasks.isEmpty()) {
+        Page<TaskResponseDTO> tasksPage = taskService.getAllTasks(page, size);
+
+        if (tasksPage.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(tasks);
+        return ResponseEntity.ok(tasksPage);
     }
 
     // PUT (Update)
@@ -66,8 +70,17 @@ public class TaskController {
 
     // GET TASKS BY USER
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TaskResponseDTO>> getTasksByUser(@PathVariable Long userId) {
-        List<TaskResponseDTO> userTasks = taskService.getTasksByUserId(userId);
+    public ResponseEntity<Page<TaskResponseDTO>> getTasksByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<TaskResponseDTO> userTasks = taskService.getTasksByUserId(userId, page, size);
+
+        if (userTasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
         return ResponseEntity.ok(userTasks);
     }
 
@@ -112,17 +125,19 @@ public class TaskController {
 
     // GET /api/tasks/search?status=PENDING&keyword=luz
     @GetMapping("/search")
-    public ResponseEntity<List<TaskResponseDTO>> searchTasks(
+    public ResponseEntity<Page<TaskResponseDTO>> searchTasks(
             @RequestParam(required = false) com.example.control2.enums.TaskStatus status,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        List<TaskResponseDTO> results = taskService.searchTasks(status, keyword);
+        Page<TaskResponseDTO> resultsPage = taskService.searchTasks(status, keyword, page, size);
 
-        if (results.isEmpty()) {
+        if (resultsPage.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(resultsPage);
     }
 
 

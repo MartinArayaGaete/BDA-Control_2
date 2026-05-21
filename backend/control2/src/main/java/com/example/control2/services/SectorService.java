@@ -9,6 +9,9 @@ import com.example.control2.mappers.SectorMapper;
 import com.example.control2.repositories.SectorRepository;
 import com.example.control2.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,10 +39,10 @@ public class SectorService {
         return sectorMapper.toDTO(savedSector);
     }
 
-    public List<SectorResponseDTO> getAllSectors() {
-        return sectorRepository.findAll().stream()
-                .map(sectorMapper::toDTO)
-                .toList();
+    public Page<SectorResponseDTO> getAllSectors(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return sectorRepository.findAll(pageable)
+                .map(sectorMapper::toDTO);
     }
 
     public SectorTaskCountProjection getTopSectorInRadius(Long userId, double radiusKm) {

@@ -4,6 +4,8 @@ import com.example.control2.dtos.TasksForUserPerSectorProjection;
 import com.example.control2.dtos.UserSectorStatsProjection;
 import com.example.control2.entities.TaskEntity;
 import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +16,7 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
-    List<TaskEntity> findByUserId(Long userId);
+    Page<TaskEntity> findByUserId(Long userId, Pageable pageable);
 
     /**
      * ¿Cuál es la tarea más cercana al usuario (que esté pendiente)?
@@ -64,9 +66,10 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
             "(:status IS NULL OR t.status = :status) AND " +
             "(LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    List<TaskEntity> searchTasks(
+    Page<TaskEntity> searchTasks(
             @Param("status") com.example.control2.enums.TaskStatus status,
-            @Param("keyword") String keyword
+            @Param("keyword") String keyword,
+            Pageable pageable
     );
 
 

@@ -5,6 +5,7 @@ import com.example.control2.dtos.SectorResponseDTO;
 import com.example.control2.dtos.SectorTaskCountProjection;
 import com.example.control2.services.SectorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,14 +27,17 @@ public class SectorController {
 
     // GET ALL SECTORS
     @GetMapping
-    public ResponseEntity<List<SectorResponseDTO>> getAllSectors() {
-        List<SectorResponseDTO> sectorsList = sectorService.getAllSectors();
+    public ResponseEntity<Page<SectorResponseDTO>> getAllSectors(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        if (sectorsList.isEmpty()) {
+        Page<SectorResponseDTO> sectorsPage = sectorService.getAllSectors(page, size);
+
+        if (sectorsPage.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(sectorsList);
+        return ResponseEntity.ok(sectorsPage);
     }
 
     // ¿Cuál es el sector con más tareas completadas dentro de un radio de 5 km desde la ubicación del usuario?

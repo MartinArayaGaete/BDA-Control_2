@@ -14,6 +14,9 @@ import com.example.control2.repositories.TaskRepository;
 import com.example.control2.repositories.UserRepository;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,10 +59,10 @@ public class TaskService {
     }
 
     // READ ALL
-    public List<TaskResponseDTO> getAllTasks() {
-        return taskRepository.findAll().stream()
-                .map(taskMapper::toDTO)
-                .toList();
+    public Page<TaskResponseDTO> getAllTasks(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return taskRepository.findAll(pageable)
+                .map(taskMapper::toDTO);
     }
 
     // UPDATE
@@ -112,13 +115,14 @@ public class TaskService {
     }
 
     // GET TASKS BY USER
-    public List<TaskResponseDTO> getTasksByUserId(Long userId) {
+    public Page<TaskResponseDTO> getTasksByUserId(Long userId, int page, int size) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found");
         }
-        return taskRepository.findByUserId(userId).stream()
-                .map(taskMapper::toDTO)
-                .toList();
+
+        Pageable pageable = PageRequest.of(page, size);
+        return taskRepository.findByUserId(userId, pageable)
+                .map(taskMapper::toDTO);
     }
 
     // GET USER STATS BY SECTOR
@@ -141,12 +145,12 @@ public class TaskService {
     }
 
     // SEARCH AND FILTER
-    public List<TaskResponseDTO> searchTasks(TaskStatus status, String keyword) {
+    public Page<TaskResponseDTO> searchTasks(TaskStatus status, String keyword, int page, int size) {
         String safeKeyword = (keyword == null) ? "" : keyword;
+        Pageable pageable = PageRequest.of(page, size);
 
-        return taskRepository.searchTasks(status, safeKeyword).stream()
-                .map(taskMapper::toDTO)
-                .toList();
+        return taskRepository.searchTasks(status, safeKeyword, pageable)
+                .map(taskMapper::toDTO);
     }
 
     // STATS: Tareas completadas por cada usuario en cada sector

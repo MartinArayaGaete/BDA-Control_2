@@ -8,6 +8,9 @@ import com.example.control2.enums.UserStatus;
 import com.example.control2.mappers.UserMapper;
 import com.example.control2.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,11 +40,11 @@ public class UserService {
     }
 
     // GET ALL
-    public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getStatus() == UserStatus.ACTIVE) // Filtramos los eliminados
-                .map(userMapper::toDTO)
-                .toList();
+    public Page<UserResponseDTO> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        // Filtrado y paginado directo en la BD
+        return userRepository.findByStatus(UserStatus.ACTIVE, pageable)
+                .map(userMapper::toDTO);
     }
 
     // SAFE DELETE

@@ -5,6 +5,7 @@ import com.example.control2.dtos.UserCreateDTO;
 import com.example.control2.dtos.UserResponseDTO;
 import com.example.control2.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,14 +28,17 @@ public class UserController {
 
     // GET ALL USERS
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        List<UserResponseDTO> usersList = userService.getAllUsers();
+    public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        if (usersList.isEmpty()) {
+        Page<UserResponseDTO> usersPage = userService.getAllUsers(page, size);
+
+        if (usersPage.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(usersList);
+        return ResponseEntity.ok(usersPage);
     }
 
     @PostMapping("/login")

@@ -88,5 +88,17 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
     List<TasksForUserPerSectorProjection> countTasksForEveryUserPerSector();
 
 
+    /**
+     * Busca todas las tareas pendientes que vencen en una fecha específica
+     * y que tienen un usuario asignado.
+     */
+    @Query(value = """
+            SELECT * FROM tasks 
+            WHERE status = 'PENDING' 
+              AND due_date = :targetDate 
+              AND user_id IS NOT NULL
+            """, nativeQuery = true)
+    List<TaskEntity> findTasksNearExpiration(@Param("targetDate") java.time.LocalDate targetDate);
+
 
 }

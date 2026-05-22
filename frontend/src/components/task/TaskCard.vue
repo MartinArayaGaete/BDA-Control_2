@@ -25,7 +25,6 @@
 
 <script setup>
 import { computed } from "vue";
-import { useRouter } from "vue-router";
 
 const props = defineProps({
     id: String,
@@ -36,11 +35,9 @@ const props = defineProps({
     status: String
 });
 
-const emit = defineEmits(['taskDeleted']);
+const emit = defineEmits(['taskDeleted', 'taskEdit']);
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
-
-const router = useRouter();
 
 const statusDisplay = computed(() => {
     switch (props.status) {
@@ -53,7 +50,7 @@ const statusDisplay = computed(() => {
 });
 
 const handleEdit = () => {
-    router.push({ name: 'editTask', params: { id: props.id } });
+    emit('taskEdit', props.id);
 };
 
 const handleDelete = async () => {

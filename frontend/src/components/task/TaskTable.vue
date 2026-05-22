@@ -5,9 +5,10 @@
         <v-col cols="12">
             <TaskCard v-for="task in tasks" :key="task.id"
             :id="task.id"
-            :titulo="task.titulo || task.title"
-            :sector="task.sectorName || task.sector"
-            :fechaVencimiento="task.dueDate || task.fechaVencimiento"
+            :titulo="task.title"
+            :descripcion="task.description"
+            :sector="task.sectorName"
+            :fechaVencimiento="task.dueDate"
             :status="task.status"
             @task-deleted="handleTaskDeleted"
             />

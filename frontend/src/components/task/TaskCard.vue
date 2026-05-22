@@ -6,7 +6,8 @@
                 {{ statusDisplay.text }}
             </v-chip>
         </v-card-title>
-        <v-card-subtitle>
+        <v-card-subtitle class="d-flex justify-space-between align-center text-wrap">
+            {{ descripcion }}
             <div>Sector: {{ sector }}</div>
             <div>Vence: {{ fechaVencimiento }}</div>
         </v-card-subtitle>
@@ -29,6 +30,7 @@ import { useRouter } from "vue-router";
 const props = defineProps({
     id: String,
     titulo: String,
+    descripcion: String,
     sector: String,
     fechaVencimiento: String,
     status: String

@@ -18,16 +18,16 @@ INSERT INTO sectors (name, geometry) VALUES
 ('Estacionamientos Sur', ST_SetSRID(ST_GeomFromText('POLYGON((-70.663 -33.534, -70.661 -33.534, -70.661 -33.532, -70.663 -33.532, -70.663 -33.534))'), 4326));
 
 -- Tareas dentro de 'Condominio Albano 2' (Sector 1)
-INSERT INTO tasks (title, description, due_date, status, user_id, location) VALUES 
-('Limpieza Hall Torre A', 'Limpiar vidrios entrada', '2026-05-10', 'COMPLETED', 1, ST_SetSRID(ST_MakePoint(-70.665, -33.528), 4326)),
-('Revisión Extintores', 'Verificar carga piso 5', '2026-05-12', 'COMPLETED', 1, ST_SetSRID(ST_MakePoint(-70.664, -33.527), 4326)),
-('Ampolleta Pasillo', 'Cambiar luz quemada', '2026-05-20', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.666, -33.529), 4326));
+INSERT INTO tasks (title, description, due_date, status, user_id, location, sector_id) VALUES 
+('Limpieza Hall Torre A', 'Limpiar vidrios entrada', '2026-05-10', 'COMPLETED', 1, ST_SetSRID(ST_MakePoint(-70.665, -33.528), 4326), 1),
+('Revisión Extintores', 'Verificar carga piso 5', '2026-05-12', 'COMPLETED', 1, ST_SetSRID(ST_MakePoint(-70.664, -33.527), 4326), 1),
+('Ampolleta Pasillo', 'Cambiar luz quemada', '2026-05-20', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.666, -33.529), 4326), 1);
 
 -- Tareas dentro de 'Estacionamientos Sur' (Sector 2)
-INSERT INTO tasks (title, description, due_date, status, user_id, location) VALUES 
-('Ronda Portón', 'Cierre de acceso vehicular', '2026-05-14', 'COMPLETED', 2, ST_SetSRID(ST_MakePoint(-70.662, -33.533), 4326)),
-('Pintura Demarcación', 'Pintar líneas amarillas', '2026-05-25', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.6615, -33.5335), 4326));
+INSERT INTO tasks (title, description, due_date, status, user_id, location, sector_id) VALUES 
+('Ronda Portón', 'Cierre de acceso vehicular', '2026-05-14', 'COMPLETED', 2, ST_SetSRID(ST_MakePoint(-70.662, -33.533), 4326), 2),
+('Pintura Demarcación', 'Pintar líneas amarillas', '2026-05-25', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.6615, -33.5335), 4326), 2);
 
 -- Tarea fuera de los sectores definidos
-INSERT INTO tasks (title, description, due_date, status, user_id, location) VALUES 
-('Basura Exterior', 'Recoger escombros vereda', '2026-05-21', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.675, -33.540), 4326));
+INSERT INTO tasks (title, description, due_date, status, user_id, location, sector_id) VALUES 
+('Basura Exterior', 'Recoger escombros vereda', '2026-05-21', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.675, -33.540), 4326), NULL);

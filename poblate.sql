@@ -21,7 +21,8 @@ INSERT INTO sectors (name, geometry) VALUES
 INSERT INTO tasks (title, description, due_date, status, user_id, location, sector_id) VALUES 
 ('Limpieza Hall Torre A', 'Limpiar vidrios entrada', '2026-05-10', 'COMPLETED', 1, ST_SetSRID(ST_MakePoint(-70.665, -33.528), 4326), 1),
 ('Revisión Extintores', 'Verificar carga piso 5', '2026-05-12', 'COMPLETED', 1, ST_SetSRID(ST_MakePoint(-70.664, -33.527), 4326), 1),
-('Ampolleta Pasillo', 'Cambiar luz quemada', '2026-05-20', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.666, -33.529), 4326), 1);
+('Ampolleta Pasillo', 'Cambiar luz quemada en el piso 3 de la torre. Cambiar por una luz calida de 30W tipo LED. Dejar la ampolleta mala en porteria',
+'2026-05-20', 'PENDING', NULL, ST_SetSRID(ST_MakePoint(-70.666, -33.529), 4326), 1);
 
 -- Tareas dentro de 'Estacionamientos Sur' (Sector 2)
 INSERT INTO tasks (title, description, due_date, status, user_id, location, sector_id) VALUES 

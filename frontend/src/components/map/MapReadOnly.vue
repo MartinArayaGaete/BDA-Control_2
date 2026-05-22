@@ -14,9 +14,37 @@ onMounted(() => {
 
   map = new maplibregl.Map({
     container: mapContainer.value,
-    style: "https://tiles.openfreemap.org/styles/bright",
+    style: "https://tiles.openfreemap.org/styles/liberty",
     center: [-70.6693, -33.4489], // Santiago: [lng, lat]
-    zoom: 11,
+    zoom: 12, // Aumentado para notar mejor el 3D
+    pitch: 60, // Ángulo de inclinación inicial para la vista 3D
+    bearing: 20 // Rotación inicial
+  });
+
+  // Habilitar la extrusión de edificios 3D una vez que carga el estilo base
+  map.on('style.load', () => {
+    map.addLayer({
+      'id': '3d-buildings',
+      'source': 'openmaptiles',
+      'source-layer': 'building',
+      'filter': ['==', 'extrude', 'true'],
+      'type': 'fill-extrusion',
+      'minzoom': 15,
+      'paint': {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            15, 0,
+            15.05, ['get', 'height']
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            15, 0,
+            15.05, ['get', 'min_height']
+          ],
+          'fill-extrusion-opacity': 0.6
+      }
+    });
   });
 
   map.addControl(new maplibregl.NavigationControl(), "top-right");
@@ -46,9 +74,8 @@ onUnmounted(() => {
 
 <style scoped>
 .map-container {
-  width: 200%;
-  height: 1000px;
-  border-radius: 12px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 </style>

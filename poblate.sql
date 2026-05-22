@@ -1,5 +1,5 @@
 -- LIMPIEZA DE DATOS
-TRUNCATE TABLE tasks, sectors, users RESTART IDENTITY;
+TRUNCATE TABLE tasks, sectors, users RESTART IDENTITY CASCADE;
 
 -- USUARIOS
 -- Posicionados en distintos puntos de La Cisterna

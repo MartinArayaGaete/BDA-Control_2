@@ -1,16 +1,31 @@
 <template>
     <v-card color="grey-darken-3" variant="elevated" class="mb-2">
-        <v-card-title class="d-flex justify-space-between align-center text-wrap">
-            {{ titulo }}
-            <v-chip :color="statusDisplay.color" text-color="white" class="ml-2" variant="flat">
-                {{ statusDisplay.text }}
-            </v-chip>
-        </v-card-title>
-        <v-card-subtitle class="d-flex justify-space-between align-center text-wrap">
-            {{ descripcion }}
-            <div>Sector: {{ sector }}</div>
-            <div>Vence: {{ fechaVencimiento }}</div>
-        </v-card-subtitle>
+        <v-card-text>
+            <v-row>
+                <!-- Columna izquierda: Título y descripción -->
+                <v-col cols="8" class="text-left">
+                    <v-card-title class="text-headline-small px-0 pt-0">
+                        {{ titulo }}
+                    </v-card-title>
+                    <v-card-subtitle class="px-0 pb-0 text-wrap">
+                        {{ descripcion }}
+                    </v-card-subtitle>
+                </v-col>
+                
+                <!-- Columna derecha: Estado, Sector, Fecha -->
+                <v-col cols="4" class="d-flex flex-column align-end">
+                    <v-chip :color="statusDisplay.color" text-color="white" variant="flat" class="mb-2">
+                        {{ statusDisplay.text }}
+                    </v-chip>
+                    <v-chip size="small" variant="text" prepend-icon="mdi-map-marker" class="text-medium-emphasis w-100 justify-end text-truncate px-0" :title="'Sector: ' + (sector || 'Sin sector asignado')">
+                        Sector: {{ sector || 'Sin sector asignado' }}
+                    </v-chip>
+                    <v-chip size="small" variant="text" prepend-icon="mdi-calendar-clock" class="text-medium-emphasis w-100 justify-end text-truncate px-0" :title="'Vence: ' + fechaVencimiento">
+                        Vence: {{ fechaVencimiento }}
+                    </v-chip>
+                </v-col>
+            </v-row>
+        </v-card-text>
         <v-card-actions>
             <v-btn @click="handleEdit" color="primary">
             Editar

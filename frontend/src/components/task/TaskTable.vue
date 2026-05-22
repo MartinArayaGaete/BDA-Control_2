@@ -1,42 +1,43 @@
 <template>
-  <v-main>
-    <v-container>
-      <v-row density="comfortable" class="mb-2">
-        <v-col cols="12" class="d-flex justify-end">
-          <v-btn color="primary" @click="openCreate">
-            Nueva tarea
-          </v-btn>
-        </v-col>
-      </v-row>
-      <v-row density="comfortable">
-        <v-col cols="12">
-            <TaskCard v-for="task in tasks" :key="task.id"
-            :id="task.id"
-            :titulo="task.title"
-            :descripcion="task.description"
-            :sector="task.sectorName"
-            :fechaVencimiento="task.dueDate"
-            :status="task.status"
-            @task-deleted="handleTaskDeleted"
-            @task-edit="handleTaskEdit"
-            />
-        </v-col>
-      </v-row>
-      <v-row justify="center" class="mt-4">
-        <v-pagination
-          v-model="page"
-          :length="totalPages"
-          @update:model-value="fetchTasks"
-        ></v-pagination>
-      </v-row>
-      <TaskForm
-        v-model="isFormOpen"
-        :mode="formMode"
-        :task="selectedTask"
-        @saved="handleTaskSaved"
-      />
-    </v-container>
-  </v-main>
+  <v-container>
+    <v-row density="comfortable" class="mb-2">
+      <v-col cols="2" class="d-flex justify-start">
+        <v-btn color="primary" @click="openCreate">
+          Nueva tarea
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <v-row density="comfortable">
+      <v-col cols="12">
+          <TaskCard v-for="task in tasks" :key="task.id"
+          :id="task.id"
+          :titulo="task.title"
+          :descripcion="task.description"
+          :sector="task.sectorName"
+          :fechaVencimiento="task.dueDate"
+          :status="task.status"
+          @task-deleted="handleTaskDeleted"
+          @task-edit="handleTaskEdit"
+          />
+      </v-col>
+    </v-row>
+    <v-row justify="center" class="mt-4">
+      <v-pagination
+        v-model="page"
+        :length="totalPages"
+        :total-visible="5"
+        color="primary"
+        @update:model-value="fetchTasks"
+      ></v-pagination>
+    </v-row>
+    <TaskForm
+      v-model="isFormOpen"
+      :mode="formMode"
+      :task="selectedTask"
+      @saved="handleTaskSaved"
+    />
+  </v-container>
 </template>
 
 <script setup>
@@ -56,7 +57,7 @@ const selectedTask = ref(null);
 
 // Estados de la paginación
 const page = ref(1); // Vuetify pagination usa 1-based index
-const size = ref(10);
+const size = ref(4);
 const totalPages = ref(0);
 
 const fetchTasks = async () => {

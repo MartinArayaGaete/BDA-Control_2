@@ -4,7 +4,7 @@
 
       <v-row no-gutters class="h-100 golden-row">
 
-        <v-col class="table-col h-100 overflow-y-auto">
+        <v-col class="table-col h-100">
           <v-sheet class="pa-4 h-100">
             <TaskTable />
           </v-sheet>

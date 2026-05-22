@@ -6,11 +6,12 @@ import HomeLayout from "../layouts/HomeLayout.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
-  { path: "/login", name: "login", component: LoginView },
-  { path: "/register", name: "register", component: RegisterView },
+  { path: "/login", name: "login", component: LoginView, meta: { public: true } },
+  { path: "/register", name: "register", component: RegisterView, meta: { public: true } },
   { 
     path: "/home", 
     component: HomeLayout,
+    meta: { requiresAuth: true },
     children: [
       { path: "", name: "home", component: HomeView },
       { path: "tasks/add", name: "tasks", component: HomeView },
@@ -27,9 +28,16 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const isAuth = localStorage.getItem("isAuth") === "true";
-  if (to.name === "home" && !isAuth) {
+  const isPublic = to.meta.public === true;
+
+  if (!isAuth && !isPublic) {
     return { name: "login" };
   }
+
+  if (isAuth && isPublic) {
+    return { name: "home" };
+  }
+
   return true;
 });
 

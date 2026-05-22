@@ -6,8 +6,8 @@
             <TaskCard v-for="task in tasks" :key="task.id"
             :id="task.id"
             :titulo="task.titulo || task.title"
-            :sector="task.sector"
-            :fechaVencimiento="task.fechaVencimiento"
+            :sector="task.sectorName || task.sector"
+            :fechaVencimiento="task.dueDate || task.fechaVencimiento"
             :status="task.status"
             @task-deleted="handleTaskDeleted"
             />

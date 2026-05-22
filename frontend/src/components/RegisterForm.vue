@@ -57,6 +57,7 @@ async function handleRegister() {
     }
     const data = await response.json();
     registerStatus.value = `OK: ${data.username} (id ${data.id})`;
+    router.push({ name: "login" });
   } catch (error) {
     registerStatus.value = `Error: ${error.message}`;
   }

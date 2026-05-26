@@ -47,6 +47,8 @@ async function handleLogin() {
     const data = await response.json();
     loginStatus.value = data.message;
     localStorage.setItem("isAuth", "true");
+    localStorage.setItem("userId", String(data.userId));
+    localStorage.setItem("username", data.username || "");
     router.push({ name: "home" });
   } catch (error) {
     loginStatus.value = `Error: ${error.message}`;

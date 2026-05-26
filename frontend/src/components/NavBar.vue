@@ -1,20 +1,46 @@
 <template>
-    <v-app-bar :elevation="2" rounded>
-        <v-app-bar-title>Gestión de tareas</v-app-bar-title>
-        <v-spacer></v-spacer>
-        <v-btn size="Large" @click="goLogin" color="error" class="ml-2">
-          Cerrar Sesión
-        </v-btn>
-    </v-app-bar>
+  <v-app-bar :elevation="2" rounded>
+    <v-app-bar-title>Gestión de tareas</v-app-bar-title>
+    <v-tabs v-model="activeTab" align-tabs="end" color="primary" class="ml-4">
+      <v-tab value="tasks" :to="{ name: 'home' }">Tareas</v-tab>
+      <v-tab value="notifications" :to="{ name: 'notifications' }">Notificaciones</v-tab>
+    </v-tabs>
+    <v-spacer></v-spacer>
+    <v-btn size="Large" @click="goLogin" color="error" class="ml-2">
+      Cerrar Sesión
+    </v-btn>
+  </v-app-bar>
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
+const route = useRoute();
 const router = useRouter();
+
+const activeTab = ref("tasks");
+
+const syncTabWithRoute = () => {
+  const routeName = String(route.name || "");
+  const routePath = String(route.path || "");
+
+  activeTab.value =
+    routeName === "notifications" || routePath.includes("/home/notifications")
+      ? "notifications"
+      : "tasks";
+};
+
+watch(
+  () => route.fullPath,
+  () => syncTabWithRoute(),
+  { immediate: true }
+);
 
 function goLogin() {
   localStorage.removeItem("isAuth");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("username");
   router.push({ name: "login" });
 }
 </script>

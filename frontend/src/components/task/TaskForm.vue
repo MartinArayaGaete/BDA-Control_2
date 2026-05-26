@@ -40,7 +40,7 @@
 							item-title="label"
 							item-value="value"
 							label="Estado"
-							:disabled="!isEdit"
+							:disabled="false"
 							:rules="[rules.required]"
 							required
 						/>
@@ -108,7 +108,7 @@ const props = defineProps({
 const emit = defineEmits(["saved"]);
 
 const router = useRouter();
-const { selectedLocation, currentMapMode, selectedTask, fetchSingleMapTask } = useMapState();
+const { selectedLocation, currentMapMode, selectedTask, fetchMapTasks } = useMapState();
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
@@ -169,6 +169,27 @@ watch(selectedLocation, (newLocation) => {
 		form.value.latitude = newLocation.lat;
 	}
 });
+
+watch(
+	() => form.value.userId,
+	(newUserId) => {
+		if (isEdit.value) return;
+		if (newUserId) {
+			form.value.status = "IN_PROGRESS";
+		} else if (form.value.status === "IN_PROGRESS") {
+			form.value.status = "PENDING";
+		}
+	}
+);
+
+watch(
+	() => form.value.status,
+	(newStatus) => {
+		if (newStatus === "PENDING") {
+			form.value.userId = null;
+		}
+	}
+);
 
 onMounted(() => {
 	currentMapMode.value = 'creating_task';
@@ -235,12 +256,32 @@ const submit = async () => {
 
 	isSaving.value = true;
 
+	const hasUser = Boolean(form.value.userId);
+	let nextStatus = form.value.status;
+	let nextUserId = form.value.userId ? Number(form.value.userId) : null;
+
+	if (nextStatus === "PENDING") {
+		nextUserId = null;
+	}
+
+	if (nextStatus === "IN_PROGRESS" && !nextUserId) {
+		errorMessage.value = "Debes asignar un usuario para poner la tarea en progreso.";
+		isSaving.value = false;
+		return;
+	}
+
+	if (nextStatus === "COMPLETED" && !nextUserId) {
+		errorMessage.value = "Debes asignar el usuario que completo la tarea.";
+		isSaving.value = false;
+		return;
+	}
+
 	const payload = {
 		title: form.value.title.trim(),
 		description: form.value.description.trim(),
 		dueDate: form.value.dueDate,
-		status: form.value.status,
-		userId: form.value.userId ? Number(form.value.userId) : null,
+		status: nextStatus,
+		userId: nextUserId,
 		latitude: Number(form.value.latitude),
 		longitude: Number(form.value.longitude)
 	};
@@ -262,10 +303,7 @@ const submit = async () => {
 			throw new Error(message || "Error al guardar la tarea");
 		}
 
-		try {
-			const savedTaskData = await response.json();
-			if (savedTaskData && savedTaskData.id) fetchSingleMapTask(savedTaskData.id);
-		} catch(e) {}
+		fetchMapTasks();
 		
 		emit("saved");
 		router.push({ name: "home" });

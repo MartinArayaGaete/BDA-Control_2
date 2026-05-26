@@ -5,6 +5,7 @@ import HomeView from "../views/HomeView.vue";
 import HomeLayout from "../layouts/HomeLayout.vue";
 import TaskTable from "../components/task/TaskTable.vue";
 import TaskForm from "../components/task/TaskForm.vue";
+import NotificationsPanel from "../components/notifications/NotificationsPanel.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -21,7 +22,8 @@ const routes = [
         children: [
           { path: "", name: "home", component: TaskTable },
           { path: "tasks/add", name: "createTask", component: TaskForm, props: { mode: 'create' } },
-          { path: "tasks/edit/:id", name: "editTask", component: TaskForm, props: { mode: 'edit' } }
+          { path: "tasks/edit/:id", name: "editTask", component: TaskForm, props: { mode: 'edit' } },
+          { path: "notifications", name: "notifications", component: NotificationsPanel }
         ]
       }
     ]
@@ -34,8 +36,14 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const isAuth = localStorage.getItem("isAuth") === "true";
+  const isAuth =
+    localStorage.getItem("isAuth") === "true" &&
+    Boolean(localStorage.getItem("userId"));
   const isPublic = to.meta.public === true;
+
+  if (!isAuth) {
+    localStorage.removeItem("isAuth");
+  }
 
   if (!isAuth && !isPublic) {
     return { name: "login" };

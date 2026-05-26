@@ -1,18 +1,23 @@
 <template>
-  <div ref="mapContainer" class="map-container"></div>
+  <div ref="mapContainer" class="map-container">
+    <slot v-if="mapReady"></slot>
+  </div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
-import maplibregl, { type Map } from "maplibre-gl";
+<script setup>
+import { onMounted, onUnmounted, shallowRef, ref, provide } from "vue";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 
-const mapContainer = ref<HTMLDivElement | null>(null);
-let map: Map | null = null;
+const mapContainer = ref(null);
+const mapReady = ref(false);
+
+// Proveemos el mapa a los componentes hijos
+const map = shallowRef(null);
+provide("map", map);
 
 onMounted(() => {
-  if (!mapContainer.value) return;
-
-  map = new maplibregl.Map({
+  const mapInstance = new maplibregl.Map({
     container: mapContainer.value,
     style: "https://tiles.openfreemap.org/styles/liberty",
     center: [-70.6693, -33.4489], // Santiago: [lng, lat]
@@ -21,9 +26,14 @@ onMounted(() => {
     bearing: 20 // Rotación inicial
   });
 
+  mapInstance.on("load", () => {
+    map.value = mapInstance;
+    mapReady.value = true; // Habilita el slot
+  });
+
   // Habilitar la extrusión de edificios 3D una vez que carga el estilo base
-  map.on('style.load', () => {
-    map.addLayer({
+  mapInstance.on('style.load', () => {
+    mapInstance.addLayer({
       'id': '3d-buildings',
       'source': 'openmaptiles',
       'source-layer': 'building',
@@ -47,35 +57,25 @@ onMounted(() => {
     });
   });
 
-  map.addControl(new maplibregl.NavigationControl(), "top-right");
-
-  const popup = new maplibregl.Popup().setHTML(`
-    <strong>Santiago</strong>
-    <br />
-    Punto inicial del mapa
-  `);
-
-  new maplibregl.Marker()
-    .setLngLat([-70.6693, -33.4489])
-    .setPopup(popup)
-    .addTo(map);
-
-  map.on("click", (event) => {
-    console.log("Longitud:", event.lngLat.lng);
-    console.log("Latitud:", event.lngLat.lat);
-  });
+  // Add zoom and rotation controls to the map.
+  mapInstance.addControl(new maplibregl.NavigationControl({
+      visualizePitch: true,
+      visualizeRoll: true,
+      showZoom: true,
+      showCompass: true
+  }));
 });
 
 onUnmounted(() => {
-  map?.remove();
-  map = null;
+  map.value?.remove();
+  map.value = null;
 });
+
 </script>
 
 <style scoped>
 .map-container {
   width: 100%;
   height: 100%;
-  overflow: hidden;
 }
 </style>

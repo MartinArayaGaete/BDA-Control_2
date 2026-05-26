@@ -42,7 +42,7 @@
 import { computed } from "vue";
 
 const props = defineProps({
-    id: String,
+    id: [String, Number],
     titulo: String,
     descripcion: String,
     sector: String,

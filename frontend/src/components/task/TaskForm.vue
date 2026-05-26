@@ -1,53 +1,52 @@
 <template>
-	<v-dialog v-model="isOpen" max-width="720" persistent>
-		<v-card color="grey-darken-3" variant="elevated">
-			<v-card-title class="text-wrap">
-				{{ isEdit ? "Editar tarea" : "Nueva tarea" }}
-			</v-card-title>
-			<v-card-text>
-				<v-form ref="formRef" v-model="isValid">
-					<v-row density="comfortable">
-						<v-col cols="12" md="6">
-							<v-text-field
-								v-model="form.title"
-								label="Nombre"
-								:rules="[rules.required]"
-								required
-							/>
-						</v-col>
-						<v-col cols="12" md="6">
-							<v-text-field
-								v-model="form.dueDate"
-								label="Fecha de vencimiento"
-								type="date"
-								:rules="[rules.required]"
-								required
-							/>
-						</v-col>
-						<v-col cols="12">
-							<v-textarea
-								v-model="form.description"
-								label="Descripcion"
-								:rules="[rules.required]"
-								rows="3"
-								auto-grow
-								required
-							/>
-						</v-col>
-						<v-col cols="12" md="6">
-							<v-select
-								v-model="form.status"
-								:items="statusOptions"
-								item-title="label"
-								item-value="value"
-								label="Estado"
-								:disabled="!isEdit"
-								:rules="[rules.required]"
-								required
-							/>
-						</v-col>
-						<v-col cols="12" md="6">
-							<v-autocomplete
+	<v-card color="grey-darken-3" variant="elevated" class="h-100 d-flex flex-column">
+		<v-card-title class="text-wrap mt-2">
+			{{ isEdit ? "Editar tarea" : "Nueva tarea" }}
+		</v-card-title>
+		<v-card-text class="flex-grow-1 overflow-auto">
+			<v-form ref="formRef" v-model="isValid">
+				<v-row density="comfortable">
+					<v-col cols="12" md="6">
+						<v-text-field
+							v-model="form.title"
+							label="Nombre"
+							:rules="[rules.required]"
+							required
+						/>
+					</v-col>
+					<v-col cols="12" md="6">
+						<v-text-field
+							v-model="form.dueDate"
+							label="Fecha de vencimiento"
+							type="date"
+							:rules="[rules.required]"
+							required
+						/>
+					</v-col>
+					<v-col cols="12"> <!-- TODO: IMPLEMENTAR LARGO MAXIMO DE 255 CARACTERES -->
+						<v-textarea
+							v-model="form.description"
+							label="Descripcion"
+							:rules="[rules.required]"
+							rows="3"
+							auto-grow
+							required
+						/>
+					</v-col>
+					<v-col cols="12" md="6">
+						<v-select
+							v-model="form.status"
+							:items="statusOptions"
+							item-title="label"
+							item-value="value"
+							label="Estado"
+							:disabled="!isEdit"
+							:rules="[rules.required]"
+							required
+						/>
+					</v-col>
+					<v-col cols="12" md="6">
+						<v-autocomplete
 								v-model="form.userId"
 								v-model:search="userSearch"
 								:items="users"
@@ -62,14 +61,13 @@
 								no-data-text="No hay usuarios"
 							/>
 						</v-col>
-						<v-col cols="12" md="6">
+						<v-col cols="12" md="6"> <!-- TODO: IMPLEMENTAR SOLAMENTE LECTURA -->
 							<v-text-field
 								v-model="form.latitude"
 								label="Latitud"
 								type="number"
 								step="any"
-								:disabled="isEdit"
-								:rules="isEdit ? [] : [rules.required]"
+								:rules="[rules.required]"
 								required
 							/>
 						</v-col>
@@ -79,8 +77,7 @@
 								label="Longitud"
 								type="number"
 								step="any"
-								:disabled="isEdit"
-								:rules="isEdit ? [] : [rules.required]"
+								:rules="[rules.required]"
 								required
 							/>
 						</v-col>
@@ -90,26 +87,28 @@
 					</v-alert>
 				</v-form>
 			</v-card-text>
-			<v-card-actions class="justify-end">
+			<v-card-actions class="justify-end px-4 pb-4">
 				<v-btn variant="text" @click="close" :disabled="isSaving">Cancelar</v-btn>
 				<v-btn color="primary" @click="submit" :loading="isSaving">
 					{{ isEdit ? "Guardar" : "Crear" }}
 				</v-btn>
 			</v-card-actions>
 		</v-card>
-	</v-dialog>
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { useMapState } from "../../composables/useMapState";
 
 const props = defineProps({
-	modelValue: { type: Boolean, default: false },
-	mode: { type: String, default: "create" },
-	task: { type: Object, default: null }
+	mode: { type: String, default: "create" }
 });
 
-const emit = defineEmits(["update:modelValue", "saved"]);
+const emit = defineEmits(["saved"]);
+
+const router = useRouter();
+const { selectedLocation, currentMapMode, selectedTask, fetchSingleMapTask } = useMapState();
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
@@ -118,11 +117,6 @@ const statusOptions = [
 	{ label: "En progreso", value: "IN_PROGRESS" },
 	{ label: "Completado", value: "COMPLETED" }
 ];
-
-const isOpen = computed({
-	get: () => props.modelValue,
-	set: (value) => emit("update:modelValue", value)
-});
 
 const isEdit = computed(() => props.mode === "edit");
 const isSaving = ref(false);
@@ -154,32 +148,38 @@ const rules = {
 };
 
 const hydrateForm = () => {
-	if (isEdit.value && props.task) {
+	if (isEdit.value && selectedTask.value) {
 		form.value = {
-			title: props.task.title || "",
-			description: props.task.description || "",
-			dueDate: props.task.dueDate || "",
-			status: props.task.status || "PENDING",
-			userId: props.task.userId ?? null,
-			latitude: props.task.latitude ?? "",
-			longitude: props.task.longitude ?? ""
+			title: selectedTask.value.title || "",
+			description: selectedTask.value.description || "",
+			dueDate: selectedTask.value.dueDate || "",
+			status: selectedTask.value.status || "PENDING",
+			userId: selectedTask.value.userId ?? null,
+			latitude: selectedTask.value.latitude ?? "",
+			longitude: selectedTask.value.longitude ?? ""
 		};
 	} else {
 		form.value = emptyForm();
 	}
 };
 
-watch(
-	() => [props.mode, props.task, props.modelValue],
-	([, , open]) => {
-		if (open) {
-			errorMessage.value = "";
-			hydrateForm();
-			fetchUsers();
-		}
-	},
-	{ immediate: true }
-);
+watch(selectedLocation, (newLocation) => {
+	if (newLocation) {
+		form.value.longitude = newLocation.lng;
+		form.value.latitude = newLocation.lat;
+	}
+});
+
+onMounted(() => {
+	currentMapMode.value = 'creating_task';
+	errorMessage.value = "";
+	hydrateForm();
+	fetchUsers();
+});
+
+onUnmounted(() => {
+	selectedLocation.value = null;
+});
 
 const fetchUsers = async (searchTerm = "") => {
 	if (usersLoading.value) {
@@ -222,7 +222,7 @@ const handleUserSearch = (value) => {
 };
 
 const close = () => {
-	emit("update:modelValue", false);
+	router.push({ name: "home" });
 };
 
 const submit = async () => {
@@ -245,14 +245,9 @@ const submit = async () => {
 		longitude: Number(form.value.longitude)
 	};
 
-	if (isEdit.value && props.task) {
-		payload.latitude = Number(props.task.latitude);
-		payload.longitude = Number(props.task.longitude);
-	}
-
 	try {
-		const url = isEdit.value && props.task
-			? `${API_BASE}/tasks/${props.task.id}`
+		const url = isEdit.value && selectedTask.value
+			? `${API_BASE}/tasks/${selectedTask.value.id}`
 			: `${API_BASE}/tasks`;
 		const method = isEdit.value ? "PUT" : "POST";
 
@@ -267,8 +262,13 @@ const submit = async () => {
 			throw new Error(message || "Error al guardar la tarea");
 		}
 
+		try {
+			const savedTaskData = await response.json();
+			if (savedTaskData && savedTaskData.id) fetchSingleMapTask(savedTaskData.id);
+		} catch(e) {}
+		
 		emit("saved");
-		close();
+		router.push({ name: "home" });
 	} catch (error) {
 		errorMessage.value = error.message || "Error inesperado";
 	} finally {

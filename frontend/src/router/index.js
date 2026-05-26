@@ -3,6 +3,8 @@ import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import HomeView from "../views/HomeView.vue";
 import HomeLayout from "../layouts/HomeLayout.vue";
+import TaskTable from "../components/task/TaskTable.vue";
+import TaskForm from "../components/task/TaskForm.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -13,10 +15,15 @@ const routes = [
     component: HomeLayout,
     meta: { requiresAuth: true },
     children: [
-      { path: "", name: "home", component: HomeView },
-      { path: "tasks/add", name: "tasks", component: HomeView },
-      { path: "tasks/edit/:id", name: "editTask", component: HomeView },
-      { path: "tasks/view/:id", name: "viewTask", component: HomeView },
+      {
+        path: "",
+        component: HomeView,
+        children: [
+          { path: "", name: "home", component: TaskTable },
+          { path: "tasks/add", name: "createTask", component: TaskForm, props: { mode: 'create' } },
+          { path: "tasks/edit/:id", name: "editTask", component: TaskForm, props: { mode: 'edit' } }
+        ]
+      }
     ]
   }
 ];

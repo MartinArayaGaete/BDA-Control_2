@@ -12,11 +12,11 @@
       </label>
       <label>
         Longitud
-        <input v-model.number="register.longitude" type="number" step="0.000001" required />
+        <input v-model="register.longitude" type="text" inputmode="decimal" required />
       </label>
       <label>
         Latitud
-        <input v-model.number="register.latitude" type="number" step="0.000001" required />
+        <input v-model="register.latitude" type="text" inputmode="decimal" required />
       </label>
       <button type="submit">Registrar</button>
       <p class="status" v-if="registerStatus">{{ registerStatus }}</p>
@@ -29,11 +29,13 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useMapState } from "../composables/useMapState";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const router = useRouter();
+const { selectedLocation } = useMapState();
 
 const register = reactive({
   username: "",
@@ -43,6 +45,12 @@ const register = reactive({
 });
 
 const registerStatus = ref("");
+
+watch(selectedLocation, (coords) => {
+  if (!coords) return;
+  register.longitude = Number(coords.lng);
+  register.latitude = Number(coords.lat);
+});
 
 async function handleRegister() {
   registerStatus.value = "Registrando...";

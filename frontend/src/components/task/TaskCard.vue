@@ -1,36 +1,37 @@
 <template>
     <v-card color="grey-darken-3" variant="elevated" class="mb-2">
-        <v-card-text>
-            <v-row>
+        <v-card-text class="pa-3 pb-1">
+            
+            <v-row density="compact">
                 <!-- Columna izquierda: Título y descripción -->
-                <v-col cols="8" class="text-left">
-                    <v-card-title class="text-headline-small px-0 pt-0">
+                <v-col cols="8" class="text-left py-1" style="min-width: 0;">
+                    <v-card-title class="text-subtitle-1 font-weight-bold px-0 pt-0 pb-1 text-truncate" style="line-height: 1.2;" :title="titulo">
                         {{ titulo }}
                     </v-card-title>
-                    <v-card-subtitle class="px-0 pb-0 text-wrap">
+                    <v-card-subtitle class="px-0 pb-0 text-caption desc-truncate" :title="descripcion">
                         {{ descripcion }}
                     </v-card-subtitle>
                 </v-col>
                 
                 <!-- Columna derecha: Estado, Sector, Fecha -->
-                <v-col cols="4" class="d-flex flex-column align-end">
-                    <v-chip :color="statusDisplay.color" text-color="white" variant="flat" class="mb-2">
+                <v-col cols="4" class="d-flex flex-column align-end py-1">
+                    <v-chip :color="statusDisplay.color" text-color="white" variant="flat" size="small" class="mb-1">
                         {{ statusDisplay.text }}
                     </v-chip>
-                    <v-chip size="small" variant="text" prepend-icon="mdi-map-marker" class="text-medium-emphasis w-100 justify-end text-truncate px-0" :title="'Sector: ' + (sector || 'Sin sector asignado')">
+                    <v-chip density="compact" variant="text" prepend-icon="mdi-map-marker" class="text-medium-emphasis w-100 justify-end text-truncate px-0 mt-n1" :title="'Sector: ' + (sector || 'Sin sector asignado')">
                         Sector: {{ sector || 'Sin sector asignado' }}
                     </v-chip>
-                    <v-chip size="small" variant="text" prepend-icon="mdi-calendar-clock" class="text-medium-emphasis w-100 justify-end text-truncate px-0" :title="'Vence: ' + fechaVencimiento">
+                    <v-chip density="compact" variant="text" prepend-icon="mdi-calendar-clock" class="text-medium-emphasis w-100 justify-end text-truncate px-0 mt-n1" :title="'Vence: ' + fechaVencimiento">
                         Vence: {{ fechaVencimiento }}
                     </v-chip>
                 </v-col>
             </v-row>
         </v-card-text>
-        <v-card-actions>
-            <v-btn @click="handleEdit" color="primary">
+        <v-card-actions class="py-1 px-2">
+            <v-btn @click="handleEdit" color="primary" density="compact">
             Editar
             </v-btn>
-            <v-btn @click="handleDelete" color="error">
+            <v-btn @click="handleDelete" color="error" density="compact">
             Eliminar
             </v-btn>
         </v-card-actions>
@@ -89,4 +90,11 @@ const handleDelete = async () => {
 </script>
 
 <style scoped>
+.desc-truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limita la descripción a un maximo de 2 lineas */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+}
 </style>

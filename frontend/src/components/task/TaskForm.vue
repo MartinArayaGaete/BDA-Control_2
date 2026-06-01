@@ -61,12 +61,21 @@
 								no-data-text="No hay usuarios"
 							/>
 						</v-col>
-						<v-col cols="12" md="6"> <!-- TODO: IMPLEMENTAR SOLAMENTE LECTURA -->
+						
+						<v-col cols="12" class="py-0 my-0">
+							<div class="text-error font-weight-bold text-subtitle-1 pb-1"> 
+								Seleccionar ubicación en el mapa para asignar latitud y longitud.
+							</div>
+						</v-col>
+
+						<v-col cols="12" md="6">
 							<v-text-field
 								v-model="form.latitude"
 								label="Latitud"
 								type="number"
 								step="any"
+								readonly
+								persistent-hint
 								:rules="[rules.required]"
 								required
 							/>
@@ -77,6 +86,8 @@
 								label="Longitud"
 								type="number"
 								step="any"
+								readonly
+								persistent-hint
 								:rules="[rules.required]"
 								required
 							/>

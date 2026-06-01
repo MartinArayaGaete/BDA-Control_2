@@ -11,9 +11,10 @@
         <v-col class="map-col h-100">
           <v-sheet class="h-100">
             <BaseMap>
+              <LayerSectors :sectors="mapSectors" />
               <LayerTasks :tasks="mapTasks"/>
               <LayerLocationPicker
-                  v-if="currentMapMode === 'creating_task' || currentMapMode === 'register_user'" 
+                  v-if="currentMapMode === 'creating_task'"
                   @location-selected="coords => selectedLocation = coords" 
               />
             </BaseMap>
@@ -28,14 +29,16 @@
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import BaseMap from "../components/map/BaseMap.vue";
+import LayerSectors from "../components/map/LayerSectors.vue";
 import LayerTasks from "../components/map/LayerTasks.vue";
 import LayerLocationPicker from "../components/map/LayerLocationPicker.vue";
 import { useMapState } from "../composables/useMapState";
 
 const router = useRouter();
-const { currentMapMode, selectedLocation, mapTasks, fetchMapTasks } = useMapState();
+const { currentMapMode, selectedLocation, mapTasks, mapSectors, fetchMapTasks, fetchMapSectors } = useMapState();
 
 onMounted(() => {
+  fetchMapSectors();
   fetchMapTasks();
 });
 

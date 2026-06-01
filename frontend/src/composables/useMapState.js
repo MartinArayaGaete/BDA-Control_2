@@ -6,6 +6,7 @@ const selectedTask = ref(null);
 
 // Centralizamos las tareas del mapa aquí para que cualquier componente pueda pedir actualización
 const mapTasks = ref([]);
+const mapSectors = ref([]);
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
@@ -21,6 +22,21 @@ const fetchMapTasks = async () => {
       mapTasks.value = data.content || [];
   } catch (error) {
       console.error("Error cargando tareas para el mapa", error);
+  }
+};
+
+const fetchMapSectors = async () => {
+  try {
+      // El get de sectores geográficos: ligero, trae la primera carga al iniciar la app.
+      const response = await fetch(`${API_BASE}/sectors?page=0&size=1000`);
+      if (response.status === 204) {
+          mapSectors.value = [];
+          return;
+      }
+      const data = await response.json();
+      mapSectors.value = data.content || [];
+  } catch (error) {
+      console.error("Error cargando sectores para el mapa", error);
   }
 };
 
@@ -59,7 +75,9 @@ export function useMapState() {
     currentMapMode,
     selectedTask,
     mapTasks,
+    mapSectors,
     fetchMapTasks,
+    fetchMapSectors,
     fetchSingleMapTask,
     removeMapTaskPoint
   };

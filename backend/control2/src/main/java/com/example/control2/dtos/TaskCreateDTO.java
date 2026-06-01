@@ -1,18 +1,28 @@
 package com.example.control2.dtos;
 
 import com.example.control2.enums.TaskStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDate;
 
 @Data
 public class TaskCreateDTO {
+    @NotBlank(message = "El título es obligatorio")
     private String title;
-    private String description;
+
+    @NotNull(message = "La fecha de vencimiento es obligatoria")
     private LocalDate dueDate;
+
+    private String description;
     private TaskStatus status;
     private Long userId;
 
     // Coordenadas
-    private double longitude;
-    private double latitude;
+    @NotNull(message = "La ubicación es obligatoria (longitude")
+    private Double longitude;
+
+    @NotNull(message = "La ubicación es obligatoria (latitude)")
+    private Double latitude;
 }
+

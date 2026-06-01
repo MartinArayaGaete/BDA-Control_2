@@ -1,4 +1,4 @@
-package com.example.control2.services;
+package com.example.control2.schedulers;
 
 import com.example.control2.entities.NotificationEntity;
 import com.example.control2.entities.TaskEntity;
@@ -24,7 +24,7 @@ public class NotificationScheduler {
 
     // "0 0 8 * * *" (Todos los días a las 8:00 AM)
     // Formato: segundo minuto hora día_mes mes día_semana
-    @Scheduled(cron = "*/20 * * * * *")
+    @Scheduled(cron = "0 */2 * * * *")
     @Transactional
     public void checkExpiringTasks() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);

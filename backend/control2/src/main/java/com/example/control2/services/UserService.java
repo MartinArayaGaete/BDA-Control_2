@@ -24,45 +24,52 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-    // CREATE
+    // CREAR
     public UserResponseDTO createUser(UserCreateDTO dto) {
-        // Mapping
+
+        // Validar si el usuario ya existe
+        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
+            throw new RuntimeException("El nombre de usuario '" + dto.getUsername() + "' ya está en uso. Por favor, elige otro.");
+        }
+
+        // Mapeo de DTO a Entidad
         UserEntity newUser = userMapper.toEntity(dto);
 
         // El usuario nace siempre activo
         newUser.setStatus(UserStatus.ACTIVE);
 
-        // Save in DB
+        // Guardar en la base de datos
         UserEntity savedUser = userRepository.save(newUser);
 
-        // Return DTO
+        // Retornar DTO
         return userMapper.toDTO(savedUser);
     }
 
-    // GET ALL
+    // OBTENER TODOS LOS USUARIOS (Paginado)
     public Page<UserResponseDTO> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        // Filtrado y paginado directo en la BD
+        // Filtrado y paginado directo en la base de datos
         return userRepository.findByStatus(UserStatus.ACTIVE, pageable)
                 .map(userMapper::toDTO);
     }
 
-    // SAFE DELETE
+    // ELIMINACIÓN SEGURA (Lógica)
     public void deleteUser(Long id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        // Cambiamos el estado a eliminado en lugar de borrar el registro
         user.setStatus(UserStatus.DELETED);
         userRepository.save(user);
     }
 
-
+    // INICIO DE SESIÓN
     public LoginResponseDTO login(String username, String password) {
         // Buscar al usuario por nombre
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Verificar password
+        // Verificar contraseña
         if (!user.getPassword().equals(password)) {
             throw new RuntimeException("Credenciales inválidas");
         }

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notifications")
 @CrossOrigin(origins = "*")
+@RequestMapping("/api/notifications")
 public class NotificationController {
 
     private final NotificationRepository notificationRepository;

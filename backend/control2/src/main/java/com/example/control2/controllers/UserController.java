@@ -13,17 +13,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserCreateDTO dto) {
-        UserResponseDTO response = userService.createUser(dto);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<?> registerUser(@RequestBody UserCreateDTO dto) {
+        try {
+            UserResponseDTO response = userService.createUser(dto);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            // username duplicado
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     // GET ALL USERS
@@ -44,11 +49,10 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserCreateDTO loginDto) {
         try {
-            // Reuse the create DTO because it includes username and password
             LoginResponseDTO response = userService.login(loginDto.getUsername(), loginDto.getPassword());
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            // If login fails, return 401 with the error message
+            // si falla devuelve 401
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }

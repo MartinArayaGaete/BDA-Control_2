@@ -15,19 +15,20 @@ public class TaskMapper {
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
-    // DTO + User -> Entity
+    // DTO + User -> Entity (Para CREATE)
     public TaskEntity toEntity(TaskCreateDTO dto, UserEntity user) {
         TaskEntity entity = new TaskEntity();
         entity.setTitle(dto.getTitle());
         entity.setDescription(dto.getDescription());
         entity.setDueDate(dto.getDueDate());
-        entity.setStatus(dto.getStatus());
         entity.setUser(user);
 
-        // Transformación Espacial: Generamos el punto desde lon/lat
-        Coordinate coordinate = new Coordinate(dto.getLongitude(), dto.getLatitude());
-        Point location = geometryFactory.createPoint(coordinate);
-        entity.setLocation(location);
+        // Transformación Espacial segura
+        if (dto.getLongitude() != null && dto.getLatitude() != null) {
+            Coordinate coordinate = new Coordinate(dto.getLongitude(), dto.getLatitude());
+            Point location = geometryFactory.createPoint(coordinate);
+            entity.setLocation(location);
+        }
 
         return entity;
     }
@@ -62,20 +63,35 @@ public class TaskMapper {
         return dto;
     }
 
-    // Update existing Entity
+    // Update existing Entity (Para PUT)
     public void updateEntity(TaskCreateDTO dto, TaskEntity entity, UserEntity user) {
-        entity.setTitle(dto.getTitle());
-        entity.setDescription(dto.getDescription());
-        entity.setDueDate(dto.getDueDate());
-        entity.setStatus(dto.getStatus());
+
+        // Solo actualizamos si el dato viene en el DTO
+        if (dto.getTitle() != null) {
+            entity.setTitle(dto.getTitle());
+        }
+
+        if (dto.getDescription() != null) {
+            entity.setDescription(dto.getDescription());
+        }
+
+        if (dto.getDueDate() != null) {
+            entity.setDueDate(dto.getDueDate());
+        }
+
+        if (dto.getStatus() != null) {
+            entity.setStatus(dto.getStatus());
+        }
 
         if (user != null) {
             entity.setUser(user);
         }
 
-        // Actualizar posición
-        Coordinate coordinate = new Coordinate(dto.getLongitude(), dto.getLatitude());
-        Point location = geometryFactory.createPoint(coordinate);
-        entity.setLocation(location);
+        // Actualizar posición solo si envían ambas coordenadas
+        if (dto.getLongitude() != null && dto.getLatitude() != null) {
+            Coordinate coordinate = new Coordinate(dto.getLongitude(), dto.getLatitude());
+            Point location = geometryFactory.createPoint(coordinate);
+            entity.setLocation(location);
+        }
     }
 }

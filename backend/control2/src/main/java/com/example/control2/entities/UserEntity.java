@@ -28,7 +28,7 @@ public class UserEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserStatus status = UserStatus.ACTIVE;
+    private UserStatus status = UserStatus.ACTIVE; // SAFE DELETE
 
     @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
     @JdbcTypeCode(SqlTypes.GEOMETRY)

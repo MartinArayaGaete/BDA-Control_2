@@ -3,10 +3,12 @@ package com.example.control2.repositories;
 import com.example.control2.dtos.TasksForUserPerSectorProjection;
 import com.example.control2.dtos.UserSectorStatsProjection;
 import com.example.control2.entities.TaskEntity;
+import jakarta.transaction.Transactional;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,7 +18,9 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
+    boolean existsBySectorId(Long sectorId);
     Page<TaskEntity> findByUserId(Long userId, Pageable pageable);
+
 
     /**
      * ¿Cuál es la tarea más cercana al usuario (que esté pendiente)?
@@ -102,6 +106,42 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
               AND user_id IS NOT NULL
             """, nativeQuery = true)
     List<TaskEntity> findTasksNearExpiration(@Param("targetDate") java.time.LocalDate targetDate);
+
+
+    /**
+     * Encuentra todas las tareas dentro de un radio específico (en metros) desde un punto dado.
+     * Soporta paginación nativa.
+     */
+    @Query(value = """
+            SELECT * FROM tasks t
+            WHERE ST_DWithin(CAST(t.location AS geography), CAST(:center AS geography), :radiusMeters)
+            """,
+            countQuery = """
+            SELECT count(*) FROM tasks t
+            WHERE ST_DWithin(CAST(t.location AS geography), CAST(:center AS geography), :radiusMeters)
+            """,
+            nativeQuery = true)
+    Page<TaskEntity> findTasksNearLocation(
+            @Param("center") org.locationtech.jts.geom.Point center,
+            @Param("radiusMeters") double radiusMeters,
+            org.springframework.data.domain.Pageable pageable
+    );
+
+
+    /**
+     * Actualiza masivamente el estado a 'EXPIRED' de todas las tareas
+     * que siguen 'PENDING' y cuya fecha de vencimiento ya pasó.
+     * Retorna la cantidad de filas actualizadas.
+     */
+    @Modifying
+    @Transactional
+    @Query(value = """
+            UPDATE tasks 
+            SET status = 'EXPIRED' 
+            WHERE status = 'PENDING' 
+              AND due_date < :currentDate
+            """, nativeQuery = true)
+    int expirePastDueTasks(@Param("currentDate") java.time.LocalDate currentDate);
 
 
 }

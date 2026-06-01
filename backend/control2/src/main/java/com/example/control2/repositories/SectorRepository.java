@@ -54,4 +54,32 @@ public interface SectorRepository extends JpaRepository<SectorEntity, Long> {
             ORDER BY taskCount DESC
             """, nativeQuery = true)
     List<SectorTaskCountProjection> getSpatialConcentrationOfPendingTasks();
+
+    /**
+     * Verifica si un nuevo polígono se solapa (intersecta) con algún sector existente.
+     */
+    @Query(value = """
+            SELECT EXISTS (
+                SELECT 1 FROM sectors s
+                WHERE ST_Intersects(s.geometry, :newGeometry)
+            )
+            """, nativeQuery = true)
+    boolean existsOverlappingSector(@Param("newGeometry") org.locationtech.jts.geom.Polygon newGeometry);
+
+    /**
+     * Verifica si un polígono se solapa con algún sector existente,
+     * ignorando el sector que se está editando actualmente.
+     */
+    @Query(value = """
+            SELECT EXISTS (
+                SELECT 1 FROM sectors s
+                WHERE ST_Intersects(s.geometry, :newGeometry)
+                  AND s.id != :sectorId
+            )
+            """, nativeQuery = true)
+    boolean existsOverlappingSectorExcludingId(
+            @Param("newGeometry") org.locationtech.jts.geom.Polygon newGeometry,
+            @Param("sectorId") Long sectorId
+    );
+
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/sectors")
 public class SectorController {
 
@@ -20,9 +21,14 @@ public class SectorController {
     private SectorService sectorService;
 
     @PostMapping
-    public ResponseEntity<SectorResponseDTO> createSector(@RequestBody SectorCreateDTO dto) {
-        SectorResponseDTO response = sectorService.createSector(dto);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<?> createSector(@RequestBody SectorCreateDTO dto) {
+        try {
+            SectorResponseDTO response = sectorService.createSector(dto);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            // Devuelve un error 400 Bad Request con el mensaje descriptivo para el frontend
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     // GET ALL SECTORS
@@ -70,4 +76,59 @@ public class SectorController {
 
         return ResponseEntity.ok(results);
     }
+
+    // IDENTIFICAR SECTOR POR PUNTO (CLIC EN EL MAPA)
+    // GET /api/sectors/point?lng=-70.665&lat=-33.528
+    @GetMapping("/point")
+    public ResponseEntity<?> getSectorByPoint(
+            @RequestParam double lng,
+            @RequestParam double lat) {
+
+        SectorResponseDTO sector = sectorService.getSectorByPoint(lng, lat);
+
+        if (sector == null) {
+            // El frontend necesita saber explícitamente que no hay sector ahí
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("El punto seleccionado no pertenece a ningún sector registrado.");
+        }
+
+        return ResponseEntity.ok(sector);
+    }
+
+    // OBTENER SECTOR POR ID
+    // GET /api/sectors/1
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getSectorById(@PathVariable Long id) {
+        try {
+            SectorResponseDTO sector = sectorService.getSectorById(id);
+            return ResponseEntity.ok(sector);
+        } catch (RuntimeException e) {
+            // Devuelve un error 404 si no encuentra el ID
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // PUT /api/sectors/{id}
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateSector(@PathVariable Long id, @RequestBody SectorCreateDTO dto) {
+        try {
+            SectorResponseDTO updatedSector = sectorService.updateSector(id, dto);
+            return ResponseEntity.ok(updatedSector);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    // DELETE /api/sectors/{id}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteSector(@PathVariable Long id) {
+        try {
+            sectorService.deleteSector(id);
+            return ResponseEntity.noContent().build(); // 204 No Content (Éxito sin cuerpo de respuesta)
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage()); // 409 Conflict si hay tareas asociadas
+        }
+    }
+
+
 }

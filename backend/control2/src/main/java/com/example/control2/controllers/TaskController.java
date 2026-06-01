@@ -6,6 +6,7 @@ import com.example.control2.dtos.TasksForUserPerSectorProjection;
 import com.example.control2.dtos.UserSectorStatsProjection;
 import com.example.control2.services.SectorService;
 import com.example.control2.services.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -14,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/tasks")
 public class TaskController {
 
@@ -27,10 +28,15 @@ public class TaskController {
 
     // POST (Create)
     @PostMapping
-    public ResponseEntity<TaskResponseDTO> createTask(@RequestBody TaskCreateDTO dto) {
-        TaskResponseDTO createdTask = taskService.createTask(dto);
-        return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
+    public ResponseEntity<?> createTask(@Valid @RequestBody TaskCreateDTO dto) {
+        try {
+            TaskResponseDTO createdTask = taskService.createTask(dto);
+            return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
+
 
     // GET ALL
     @GetMapping
@@ -49,9 +55,14 @@ public class TaskController {
 
     // PUT (Update)
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponseDTO> updateTask(@PathVariable Long id, @RequestBody TaskCreateDTO dto) {
-        TaskResponseDTO updatedTask = taskService.updateTask(id, dto);
-        return ResponseEntity.ok(updatedTask);
+    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody TaskCreateDTO dto) {
+        try {
+            TaskResponseDTO updatedTask = taskService.updateTask(id, dto);
+            return ResponseEntity.ok(updatedTask);
+        } catch (RuntimeException e) {
+            // Devuelve el mensaje claro del servicio con un 400
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     // DELETE
@@ -62,11 +73,15 @@ public class TaskController {
     }
 
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<TaskResponseDTO> completeTask(
+    public ResponseEntity<?> completeTask(
             @PathVariable Long id,
             @RequestParam Long userId) {
-        TaskResponseDTO completedTask = taskService.completeTask(id, userId);
-        return ResponseEntity.ok(completedTask);
+        try {
+            TaskResponseDTO completedTask = taskService.completeTask(id, userId);
+            return ResponseEntity.ok(completedTask);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     // GET TASKS BY USER
@@ -153,6 +168,25 @@ public class TaskController {
         }
 
         return ResponseEntity.ok(stats);
+    }
+
+    // buscar tareas al rededor de un punto
+    // GET /api/tasks/nearby?lng=-70.665&lat=-33.528&radiusKm=5.0
+    @GetMapping("/nearby")
+    public ResponseEntity<Page<TaskResponseDTO>> getTasksNearby(
+            @RequestParam double lng,
+            @RequestParam double lat,
+            @RequestParam(defaultValue = "5.0") double radiusKm,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<TaskResponseDTO> nearbyTasks = taskService.getTasksNearPoint(lng, lat, radiusKm, page, size);
+
+        if (nearbyTasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(nearbyTasks);
     }
 
 }

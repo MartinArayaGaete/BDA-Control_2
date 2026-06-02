@@ -6,6 +6,7 @@ import HomeLayout from "../layouts/HomeLayout.vue";
 import TaskTable from "../components/task/TaskTable.vue";
 import TaskForm from "../components/task/TaskForm.vue";
 import NotificationsPanel from "../components/notifications/NotificationsPanel.vue";
+import StatisticsPanel from "../components/statistics/StatisticsPanel.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -23,6 +24,7 @@ const routes = [
           { path: "", name: "home", component: TaskTable },
           { path: "tasks/add", name: "createTask", component: TaskForm, props: { mode: 'create' } },
           { path: "tasks/edit/:id", name: "editTask", component: TaskForm, props: { mode: 'edit' } },
+          { path: "statistics", name: "statistics", component: StatisticsPanel },
           { path: "notifications", name: "notifications", component: NotificationsPanel }
         ]
       }

@@ -3,6 +3,7 @@
     <v-app-bar-title>Gestión de tareas</v-app-bar-title>
     <v-tabs v-model="activeTab" align-tabs="end" color="primary" class="ml-4">
       <v-tab value="tasks" :to="{ name: 'home' }">Tareas</v-tab>
+      <v-tab value="statistics" :to="{ name: 'statistics' }">Estadísticas</v-tab>
       <v-tab value="notifications" :to="{ name: 'notifications' }">Notificaciones</v-tab>
     </v-tabs>
     <v-spacer></v-spacer>
@@ -25,10 +26,17 @@ const syncTabWithRoute = () => {
   const routeName = String(route.name || "");
   const routePath = String(route.path || "");
 
-  activeTab.value =
-    routeName === "notifications" || routePath.includes("/home/notifications")
-      ? "notifications"
-      : "tasks";
+  if (routeName === "notifications" || routePath.includes("/home/notifications")) {
+    activeTab.value = "notifications";
+    return;
+  }
+
+  if (routeName === "statistics" || routePath.includes("/home/statistics")) {
+    activeTab.value = "statistics";
+    return;
+  }
+
+  activeTab.value = "tasks";
 };
 
 watch(

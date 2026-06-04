@@ -53,6 +53,23 @@ public class UserService {
                 .map(userMapper::toDTO);
     }
 
+
+    // OBTENER USUARIO POR USERNAME
+    public UserResponseDTO getUserByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el username: " + username));
+
+        return userMapper.toDTO(user);
+    }
+
+    // OBTENER USUARIO POR ID
+    public UserResponseDTO getUserById(Long id) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el ID: " + id));
+
+        return userMapper.toDTO(user);
+    }
+
     // ELIMINACIÓN SEGURA (Lógica)
     public void deleteUser(Long id) {
         UserEntity user = userRepository.findById(id)

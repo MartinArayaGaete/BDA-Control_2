@@ -4,11 +4,15 @@ import com.example.control2.dtos.TaskCreateDTO;
 import com.example.control2.dtos.TaskResponseDTO;
 import com.example.control2.dtos.TasksForUserPerSectorProjection;
 import com.example.control2.dtos.UserSectorStatsProjection;
+import com.example.control2.entities.TaskEntity;
 import com.example.control2.services.SectorService;
 import com.example.control2.services.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,6 +55,19 @@ public class TaskController {
         }
 
         return ResponseEntity.ok(tasksPage);
+    }
+
+    // OBTENER TAREA POR ID
+    // GET /api/tasks/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getTaskById(@PathVariable Long id) {
+        try {
+            TaskResponseDTO task = taskService.getTaskById(id);
+            return ResponseEntity.ok(task);
+        } catch (RuntimeException e) {
+            // Devuelve 404 si la tarea no existe
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     // PUT (Update)
@@ -188,5 +205,41 @@ public class TaskController {
 
         return ResponseEntity.ok(nearbyTasks);
     }
+
+
+    // GET /api/tasks/filter?status=PENDING&sectorId=1&page=0&size=10
+    @GetMapping("/filter")
+    public ResponseEntity<?> filterTasks(
+            @RequestParam(required = false) com.example.control2.enums.TaskStatus status,
+            @RequestParam(required = false) Long sectorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<TaskResponseDTO> filteredTasks = taskService.getTasksByFilter(status, sectorId, page, size);
+
+            if (filteredTasks.isEmpty()) {
+                return ResponseEntity.noContent().build(); // 204 si no hay coincidencias
+            }
+
+            return ResponseEntity.ok(filteredTasks);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+
+    // PATCH /api/tasks/{id}/assign?userId=1
+    @PatchMapping("/{id}/assign")
+    public ResponseEntity<?> assignTask(
+            @PathVariable Long id,
+            @RequestParam Long userId) {
+        try {
+            TaskResponseDTO assignedTask = taskService.assignTask(id, userId);
+            return ResponseEntity.ok(assignedTask);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 
 }

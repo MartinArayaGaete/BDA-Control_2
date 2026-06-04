@@ -46,6 +46,31 @@ public class UserController {
         return ResponseEntity.ok(usersPage);
     }
 
+    // OBTENER USUARIO POR USERNAME
+    // GET /api/users/username/{username}
+    @GetMapping("/username/{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
+        try {
+            UserResponseDTO user = userService.getUserByUsername(username);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+
+    // OBTENER USUARIO POR ID
+    // GET /api/users/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        try {
+            UserResponseDTO user = userService.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserCreateDTO loginDto) {
         try {

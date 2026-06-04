@@ -144,4 +144,16 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
     int expirePastDueTasks(@Param("currentDate") java.time.LocalDate currentDate);
 
 
+    /**
+     * Filtra tareas por estado y/o sector de forma paginada.
+     */
+    @Query("SELECT t FROM TaskEntity t WHERE " +
+            "(:status IS NULL OR t.status = :status) AND " +
+            "(:sectorId IS NULL OR t.sector.id = :sectorId)")
+    Page<TaskEntity> filterTasksByStatusAndSector(
+            @Param("status") com.example.control2.enums.TaskStatus status,
+            @Param("sectorId") Long sectorId,
+            Pageable pageable
+    );
+
 }

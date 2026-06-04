@@ -75,6 +75,15 @@ public class TaskService {
         return taskMapper.toDTO(taskRepository.save(newTask));
     }
 
+
+    // OBTENER TAREA POR ID
+    public TaskResponseDTO getTaskById(Long id) {
+        TaskEntity task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarea con ID " + id + " no encontrada."));
+
+        return taskMapper.toDTO(task);
+    }
+
     // LEER TODAS LAS TAREAS (PAGINADO)
     public Page<TaskResponseDTO> getAllTasks(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -229,5 +238,41 @@ public class TaskService {
         // Consultar y mapear a DTO (El DTO ya incluirá el estado y el sector)
         return taskRepository.findTasksNearLocation(centerLocation, radiusMeters, pageable)
                 .map(taskMapper::toDTO);
+    }
+
+    // FILTRAR TAREAS POR ESTADO Y SECTOR (PAGINADO)
+    public Page<TaskResponseDTO> getTasksByFilter(TaskStatus status, Long sectorId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return taskRepository.filterTasksByStatusAndSector(status, sectorId, pageable)
+                .map(taskMapper::toDTO);
+    }
+
+    // ASIGNAR TAREA A UN USUARIO (PONER EN PROGRESO)
+    public TaskResponseDTO assignTask(Long id, Long userId) {
+        TaskEntity task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarea con ID " + id + " no encontrada."));
+
+        // Validaciones de negocio
+        if (task.getStatus() == TaskStatus.EXPIRED) {
+            throw new RuntimeException("Error: No se puede asignar una tarea que ya ha expirado.");
+        }
+        if (task.getStatus() == TaskStatus.COMPLETED) {
+            throw new RuntimeException("Error: Esta tarea ya fue completada.");
+        }
+        if (task.getStatus() == TaskStatus.IN_PROGRESS && task.getUser() != null && !task.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Aviso: Esta tarea ya está siendo realizada por otro usuario.");
+        }
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario con ID " + userId + " no encontrado en el sistema."));
+
+        // Aplicar cambios
+        task.setStatus(TaskStatus.IN_PROGRESS);
+        task.setUser(user);
+
+        // Guardar y retornar
+        TaskEntity savedTask = taskRepository.save(task);
+        return taskMapper.toDTO(savedTask);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.control2.services;
 
+import com.example.control2.security.JwtService;
 import com.example.control2.dtos.LoginResponseDTO;
 import com.example.control2.dtos.UserCreateDTO;
 import com.example.control2.dtos.UserResponseDTO;
@@ -17,6 +18,8 @@ import java.util.List;
 
 @Service
 public class UserService {
+    @Autowired
+    private JwtService jwtService;
 
     @Autowired
     private UserRepository userRepository;
@@ -91,7 +94,8 @@ public class UserService {
             throw new RuntimeException("Credenciales inválidas");
         }
 
+        String token = jwtService.generateToken(user.getUsername());
         // Retornar datos básicos para la sesión
-        return new LoginResponseDTO(user.getId(), user.getUsername(), "Login exitoso");
+        return new LoginResponseDTO(user.getId(), user.getUsername(),token, "Login exitoso");
     }
 }

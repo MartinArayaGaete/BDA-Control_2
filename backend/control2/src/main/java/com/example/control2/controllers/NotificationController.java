@@ -11,7 +11,9 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/notifications")
-public class NotificationController {
+public class
+
+NotificationController {
 
     private final NotificationRepository notificationRepository;
 

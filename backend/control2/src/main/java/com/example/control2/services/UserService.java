@@ -1,6 +1,5 @@
 package com.example.control2.services;
 
-import com.example.control2.security.JwtService;
 import com.example.control2.dtos.LoginResponseDTO;
 import com.example.control2.dtos.UserCreateDTO;
 import com.example.control2.dtos.UserResponseDTO;
@@ -18,9 +17,6 @@ import java.util.List;
 
 @Service
 public class UserService {
-    @Autowired
-    private JwtService jwtService;
-
     @Autowired
     private UserRepository userRepository;
 
@@ -84,7 +80,7 @@ public class UserService {
     }
 
     // INICIO DE SESIÓN
-    public LoginResponseDTO login(String username, String password) {
+    public UserEntity authenticate(String username, String password) {
         // Buscar al usuario por nombre
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -94,8 +90,6 @@ public class UserService {
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        String token = jwtService.generateToken(user.getUsername());
-        // Retornar datos básicos para la sesión
-        return new LoginResponseDTO(user.getId(), user.getUsername(),token, "Login exitoso");
+        return user;
     }
 }

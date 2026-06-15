@@ -7,6 +7,7 @@ import TaskTable from "../components/task/TaskTable.vue";
 import TaskForm from "../components/task/TaskForm.vue";
 import NotificationsPanel from "../components/notifications/NotificationsPanel.vue";
 import StatisticsPanel from "../components/statistics/StatisticsPanel.vue";
+import { useAuthState } from "../composables/useAuthState";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -37,15 +38,16 @@ const router = createRouter({
   routes
 });
 
-router.beforeEach((to) => {
-  const isAuth =
-    localStorage.getItem("isAuth") === "true" &&
-    Boolean(localStorage.getItem("userId"));
+const authState = useAuthState();
+
+router.beforeEach(async (to) => {
   const isPublic = to.meta.public === true;
 
-  if (!isAuth) {
-    localStorage.removeItem("isAuth");
+  if (!authState.initialized.value) {
+    await authState.bootstrapAuth();
   }
+
+  const isAuth = authState.isAuthenticated.value;
 
   if (!isAuth && !isPublic) {
     return { name: "login" };

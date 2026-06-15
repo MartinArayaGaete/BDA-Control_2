@@ -220,7 +220,9 @@ const fetchUsers = async (searchTerm = "") => {
 
 	usersLoading.value = true;
 	try {
-		const response = await fetch(`${API_BASE}/users?page=0&size=100`);
+		const response = await fetch(`${API_BASE}/users?page=0&size=100`, {
+			credentials: "include"
+		});
 		if (response.status === 204) {
 			users.value = [];
 			return;
@@ -306,6 +308,7 @@ const submit = async () => {
 		const response = await fetch(url, {
 			method,
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify(payload)
 		});
 

@@ -3,6 +3,7 @@ package com.example.control2.security;
 import com.example.control2.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,30 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String ACCESS_TOKEN_COOKIE = "access_token";
+
     @Autowired
     private JwtService jwtService;
+
+    private String resolveToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (ACCESS_TOKEN_COOKIE.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -27,14 +50,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String token = resolveToken(request);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (token == null || token.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String token = authHeader.substring(7);
 
         if (jwtService.validateToken(token)) {
 

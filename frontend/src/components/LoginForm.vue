@@ -23,9 +23,10 @@
 <script setup>
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthState } from "../composables/useAuthState";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const router = useRouter();
+const { login: performLogin } = useAuthState();
 const login = reactive({
   username: "",
   password: ""
@@ -36,19 +37,8 @@ const loginStatus = ref("");
 async function handleLogin() {
   loginStatus.value = "Ingresando...";
   try {
-    const response = await fetch(`${API_BASE}/users/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(login)
-    });
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
-    const data = await response.json();
-    loginStatus.value = data.message;
-    localStorage.setItem("isAuth", "true");
-    localStorage.setItem("userId", String(data.userId));
-    localStorage.setItem("username", data.username || "");
+    const user = await performLogin(login);
+    loginStatus.value = user ? "Login exitoso" : "Sesión iniciada";
     router.push({ name: "home" });
   } catch (error) {
     loginStatus.value = `Error: ${error.message}`;

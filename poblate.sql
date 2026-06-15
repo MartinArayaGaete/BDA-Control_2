@@ -6,7 +6,11 @@ TRUNCATE TABLE tasks, sectors, users RESTART IDENTITY CASCADE;
 INSERT INTO users (username, password, location, status) VALUES 
 ('admin', 'pass123', ST_SetSRID(ST_MakePoint(-70.6652, -33.5281), 4326), 'ACTIVE'),
 ('sergio_guardia', 'pass123', ST_SetSRID(ST_MakePoint(-70.6610, -33.5310), 4326), 'ACTIVE'),
-('maria_conserje', 'pass123', ST_SetSRID(ST_MakePoint(-70.6685, -33.5255), 4326), 'ACTIVE');
+('maria_conserje', 'pass123', ST_SetSRID(ST_MakePoint(-70.6685, -33.5255), 4326), 'ACTIVE'),
+('juan_tecnico', 'pass123', ST_SetSRID(ST_MakePoint(-70.6630, -33.5295), 4326), 'ACTIVE'),
+('rosa_aseo', 'pass123', ST_SetSRID(ST_MakePoint(-70.6670, -33.5270), 4326), 'INACTIVE'),
+('pedro_seguridad', 'pass123', ST_SetSRID(ST_MakePoint(-70.6645, -33.5320), 4326), 'INACTIVE'),
+('admin_2', 'pass123', ST_SetSRID(ST_MakePoint(-70.6658, -33.5288), 4326), 'INACTIVE');
 
 -- SECTORES (Polígonos)
 -- Sector 1: Condominio Principal

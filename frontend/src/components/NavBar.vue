@@ -16,9 +16,11 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useAuthState } from "../composables/useAuthState";
 
 const route = useRoute();
 const router = useRouter();
+const { logout } = useAuthState();
 
 const activeTab = ref("tasks");
 
@@ -45,10 +47,8 @@ watch(
   { immediate: true }
 );
 
-function goLogin() {
-  localStorage.removeItem("isAuth");
-  localStorage.removeItem("userId");
-  localStorage.removeItem("username");
+async function goLogin() {
+  await logout();
   router.push({ name: "login" });
 }
 </script>

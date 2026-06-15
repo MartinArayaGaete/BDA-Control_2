@@ -58,6 +58,7 @@ async function handleRegister() {
     const response = await fetch(`${API_BASE}/users/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(register)
     });
     if (!response.ok) {

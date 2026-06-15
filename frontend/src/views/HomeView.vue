@@ -27,25 +27,18 @@
 
 <script setup>
 import { onMounted } from "vue";
-import { useRouter } from "vue-router";
 import BaseMap from "../components/map/BaseMap.vue";
 import LayerSectors from "../components/map/LayerSectors.vue";
 import LayerTasks from "../components/map/LayerTasks.vue";
 import LayerLocationPicker from "../components/map/LayerLocationPicker.vue";
 import { useMapState } from "../composables/useMapState";
 
-const router = useRouter();
 const { currentMapMode, selectedLocation, mapTasks, mapSectors, fetchMapTasks, fetchMapSectors } = useMapState();
 
 onMounted(() => {
   fetchMapSectors();
   fetchMapTasks();
 });
-
-function goLogin() {
-  localStorage.removeItem("isAuth");
-  router.push({ name: "login" });
-}
 </script>
 
 <style scoped>

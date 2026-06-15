@@ -119,7 +119,9 @@ const fetchTasks = async () => {
             url += `?page=${page.value - 1}&size=${size.value}`;
         }
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          credentials: "include"
+        });
         
         if (response.status === 204) {
             tasks.value = [];

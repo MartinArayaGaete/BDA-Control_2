@@ -45,10 +45,12 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import { useAuthState } from "../../composables/useAuthState";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const route = useRoute();
 const isActiveTab = computed(() => route.name === "notifications");
+const { user, bootstrapAuth } = useAuthState();
 
 const notifications = ref([]);
 const loading = ref(false);
@@ -56,34 +58,7 @@ const error = ref("");
 const usersLoading = ref(false);
 let refreshTimer = null;
 
-const getUserId = () => {
-  const stored = localStorage.getItem("userId");
-  return stored ? Number(stored) : null;
-};
-
-const hydrateUserIdFromUsername = async () => {
-  const storedUserId = localStorage.getItem("userId");
-  if (storedUserId) return;
-
-  const username = localStorage.getItem("username");
-  if (!username) return;
-
-  if (usersLoading.value) return;
-  usersLoading.value = true;
-  try {
-    const response = await fetch(`${API_BASE}/users?page=0&size=200`);
-    if (!response.ok || response.status === 204) return;
-    const data = await response.json();
-    const match = (data.content || []).find((user) => user.username === username);
-    if (match?.id) {
-      localStorage.setItem("userId", String(match.id));
-    }
-  } catch (fetchError) {
-    // noop
-  } finally {
-    usersLoading.value = false;
-  }
-};
+const getUserId = () => user.value?.id ?? null;
 
 const fetchNotifications = async () => {
   const userId = getUserId();
@@ -96,7 +71,9 @@ const fetchNotifications = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = await fetch(`${API_BASE}/notifications/user/${userId}`);
+    const response = await fetch(`${API_BASE}/notifications/user/${userId}`, {
+      credentials: "include"
+    });
     if (response.status === 204) {
       notifications.value = [];
       return;
@@ -116,7 +93,8 @@ const fetchNotifications = async () => {
 const markAsRead = async (taskId) => {
   try {
     const response = await fetch(`${API_BASE}/notifications/task/${taskId}/read`, {
-      method: "PATCH"
+      method: "PATCH",
+      credentials: "include"
     });
     if (!response.ok) {
       throw new Error(await response.text());
@@ -135,7 +113,7 @@ const formatDate = (value) => {
 };
 
 onMounted(() => {
-  hydrateUserIdFromUsername().finally(() => {
+  bootstrapAuth().finally(() => {
     fetchNotifications();
   });
   refreshTimer = setInterval(() => {

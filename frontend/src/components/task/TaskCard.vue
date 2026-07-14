@@ -1,5 +1,5 @@
 <template>
-    <v-card color="grey-darken-3" variant="elevated" class="mb-2">
+    <v-card color="grey-darken-3" variant="elevated" class="mb-2 task-card" @click="handleSelect">
         <v-card-text class="pa-3 pb-1">
             
             <v-row density="compact">
@@ -28,10 +28,10 @@
             </v-row>
         </v-card-text>
         <v-card-actions class="py-1 px-2">
-            <v-btn @click="handleEdit" color="primary" density="compact">
+            <v-btn @click.stop="handleEdit" color="primary" density="compact">
             Editar
             </v-btn>
-            <v-btn @click="handleDelete" color="error" density="compact">
+            <v-btn @click.stop="handleDelete" color="error" density="compact">
             Eliminar
             </v-btn>
         </v-card-actions>
@@ -51,7 +51,7 @@ const props = defineProps({
     status: String
 });
 
-const emit = defineEmits(['taskDeleted', 'taskEdit']);
+const emit = defineEmits(['taskDeleted', 'taskEdit', 'taskSelect']);
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
@@ -67,6 +67,10 @@ const statusDisplay = computed(() => {
 
 const handleEdit = () => {
     emit('taskEdit', props.id);
+};
+
+const handleSelect = () => {
+    emit('taskSelect', props.id);
 };
 
 const handleDelete = async () => {
@@ -97,5 +101,9 @@ const handleDelete = async () => {
     -webkit-box-orient: vertical;
     overflow: hidden;
     white-space: normal;
+}
+
+.task-card {
+    cursor: pointer;
 }
 </style>

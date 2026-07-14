@@ -1,15 +1,50 @@
 <template>
   <div class="d-flex flex-column h-100">
-    <!-- Bloque 1: Botón Nueva tarea, Búsqueda y Filtro de Estado -->
-    <v-row density="comfortable" class="mb-2 flex-grow-0 align-center">
+        
+    <v-row density="comfortable" class="mb-0 flex-grow-0 align-center">
 
       <v-col cols="12" md="2" class="d-flex justify-start">
-        <v-btn color="primary" @click="openCreate">
+        <v-btn color="green" block @click="openCreate">
           Nueva tarea
         </v-btn>
       </v-col>
+
+      <v-col cols="12" md="5" class="d-flex justify-start">
+        <v-btn color="primary" block @click="searchNearestPendingTask">
+          Buscar tarea pendiente más cercana
+        </v-btn>
+      </v-col>
       
-      <v-col cols="12" md="6">
+      <v-col cols="10" md="4">
+        <v-select
+          v-model="searchStatus"
+          :items="statusOptions"
+          item-title="label"
+          item-value="value"
+          label="Filtro por estado"
+          density="compact"
+          variant="outlined"
+          hide-details
+          clearable
+          @update:model-value="onSearchChange"
+        ></v-select>
+      </v-col>
+
+      <v-col cols="2" md="1" class="d-flex justify-end">
+        <v-btn
+          icon="mdi-refresh"
+          color="primary"
+          variant="tonal"
+          :loading="tasksLoading"
+          @click="refreshTasks"
+        ></v-btn>
+      </v-col>
+
+    </v-row>
+
+    <!-- Bloque 1: Botón Nueva tarea, Búsqueda y Filtro de Estado -->
+    <v-row density="comfortable" class="mb-2 flex-grow-0 align-center">
+      <v-col cols="12" md="12">
         <v-text-field
           v-model="searchKeyword"
           label="Buscar tarea..."
@@ -21,23 +56,8 @@
           @update:model-value="onSearchChange"
         ></v-text-field>
       </v-col>
-
-      <v-col cols="12" md="4">
-        <v-select
-          v-model="searchStatus"
-          :items="statusOptions"
-          item-title="label"
-          item-value="value"
-          label="Estado"
-          density="compact"
-          variant="outlined"
-          hide-details
-          clearable
-          @update:model-value="onSearchChange"
-        ></v-select>
-      </v-col>
     </v-row>
-    
+
     <!-- Bloque 2: Grid de las cartas de tareas -->
     <v-sheet class="pa-2 flex-grow-1 overflow-auto d-flex flex-column" position="relative">
       <v-container class="pa-0 flex-grow-1">
@@ -52,6 +72,7 @@
               :status="task.status"
               @task-deleted="handleTaskDeleted"
               @task-edit="handleTaskEdit"
+              @task-select="handleTaskSelect"
               />
           </v-col>
         </v-row>
@@ -76,9 +97,11 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import TaskCard from "./TaskCard.vue";
 import { useMapState } from "../../composables/useMapState";
+import { useAuthState } from "../../composables/useAuthState";
 
 const router = useRouter();
 const { currentMapMode, selectedTask, removeMapTaskPoint } = useMapState();
+const { user, bootstrapAuth } = useAuthState();
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
@@ -103,6 +126,8 @@ const statusOptions = [
 const page = ref(1); // Vuetify pagination usa 1-based index
 const size = ref(4);
 const totalPages = ref(0);
+
+const getUserId = () => user.value?.id ?? null;
 
 const fetchTasks = async () => {
     tasksLoading.value = true;
@@ -138,7 +163,47 @@ const fetchTasks = async () => {
     }
 }
 
-// Timeout básico (debounce) para no sobrecargar el endpoint al tipear
+const fetchNearestPendingTask = async () => {
+    tasksLoading.value = true;
+    tasksError.value = null;
+
+    await bootstrapAuth();
+    const userId = getUserId();
+
+    if (userId === null || userId === undefined) {
+      tasksError.value = "No hay usuario autenticado para buscar la tarea más cercana.";
+      tasksLoading.value = false;
+      return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/tasks/closest/${userId}`, {
+          credentials: "include"
+        });
+        
+        if (response.status === 204) {
+            tasks.value = [];
+            totalPages.value = 0;
+            selectedTask.value = null;
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+
+        const data = await response.json();
+        tasks.value = data ? [data] : [];
+        totalPages.value = data ? 1 : 0;
+        page.value = 1;
+        selectedTask.value = data ? { ...data } : null;
+    } catch (error) {
+        tasksError.value = error.message;
+    } finally {
+        tasksLoading.value = false;
+    }
+}
+
 const onSearchChange = () => {
     if (searchTimer) clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
@@ -158,9 +223,28 @@ const handleTaskEdit = (taskId) => {
   router.push({ name: "editTask", params: { id: taskId } });
 };
 
+const handleTaskSelect = (taskId) => {
+  const task = tasks.value.find((item) => String(item.id) === String(taskId)) || null;
+  selectedTask.value = task ? { ...task } : null;
+};
+
 const openCreate = () => {
   selectedTask.value = null;
   router.push({ name: "createTask" });
+};
+
+const searchNearestPendingTask = () => {
+  selectedTask.value = null;
+  fetchNearestPendingTask();
+}
+
+const refreshTasks = () => {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchKeyword.value = "";
+  searchStatus.value = null;
+  page.value = 1;
+  selectedTask.value = null;
+  fetchTasks();
 };
 
 onMounted(() => {

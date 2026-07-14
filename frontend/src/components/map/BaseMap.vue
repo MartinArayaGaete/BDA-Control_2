@@ -78,4 +78,25 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
+
+.map-container :deep(.maplibregl-popup-content) {
+  padding-right: 32px;
+}
+
+.map-container :deep(.maplibregl-popup-close-button) {
+  color: #ffffff;
+  background-color: #d32f2f;
+  border-radius: 2px;
+  font-size: 18px;
+  font-weight: 700;
+  height: 22px;
+  line-height: 20px;
+  right: 6px;
+  top: 6px;
+  width: 22px;
+}
+
+.map-container :deep(.maplibregl-popup-close-button:hover) {
+  background-color: #b71c1c;
+}
 </style>

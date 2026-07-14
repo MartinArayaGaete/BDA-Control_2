@@ -2,18 +2,30 @@
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted, watch } from "vue";
+import { inject, onMounted, onUnmounted, ref, watch } from "vue";
 import maplibregl from "maplibre-gl";
+import { useAuthState } from "../../composables/useAuthState";
+import { useMapState } from "../../composables/useMapState";
 
 const map = inject("map");
+const { user, bootstrapAuth } = useAuthState();
+const { selectedTask } = useMapState();
+const userLocationMarker = ref(null);
 
 const props = defineProps(['tasks']);
+
+const hasValidCoordinates = (item) => {
+  const longitude = Number(item?.longitude);
+  const latitude = Number(item?.latitude);
+
+  return Number.isFinite(longitude) && Number.isFinite(latitude);
+};
 
 // Función para transformar las tareas en formato GeoJSON
 const getGeoJSON = (tasksList) => {
   return {
     type: 'FeatureCollection',
-    features: (tasksList || []).filter(t => t.longitude && t.latitude).map(t => ({
+    features: (tasksList || []).filter(hasValidCoordinates).map(t => ({
       type: 'Feature',
       geometry: {
         type: 'Point',
@@ -59,6 +71,64 @@ const handleMapClick = (e) => {
     .addTo(map.value);
 };
 
+const updateUserLocationMarker = () => {
+  if (!map.value) return;
+
+  if (!hasValidCoordinates(user.value)) {
+    if (userLocationMarker.value) {
+      userLocationMarker.value.remove();
+      userLocationMarker.value = null;
+    }
+    return;
+  }
+
+  const coordinates = [Number(user.value.longitude), Number(user.value.latitude)];
+
+  if (!userLocationMarker.value) {
+    userLocationMarker.value = new maplibregl.Marker({ color: '#1976d2' })
+      .setLngLat(coordinates)
+      .setPopup(
+        new maplibregl.Popup({ offset: 25 }).setHTML(`
+          <div style="color: #333; font-family: sans-serif; min-width: 150px;">
+            <h4 style="margin: 0 0 4px 0;">Tu ubicación</h4>
+          </div>
+        `)
+      )
+      .addTo(map.value);
+    return;
+  }
+
+  userLocationMarker.value.setLngLat(coordinates);
+};
+
+const flyToTask = (task) => {
+  if (!map.value || !hasValidCoordinates(task)) return;
+
+  map.value.flyTo({
+    center: [Number(task.longitude), Number(task.latitude)],
+    zoom: 16,
+    speed: 1.2,
+    curve: 1.4,
+    essential: true
+  });
+
+  handleMapClick({
+    features: [{
+      geometry: {
+        coordinates: [Number(task.longitude), Number(task.latitude)]
+      },
+      properties: {
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        dueDate: task.dueDate,
+        sectorName: task.sectorName
+      }
+    }]
+  });
+};
+
 onMounted(() => {
   if (!map.value) return;
 
@@ -93,6 +163,8 @@ onMounted(() => {
   map.value.on('click', 'tasks-layer', handleMapClick);
   map.value.on('mouseenter', 'tasks-layer', handlePointerCursor);
   map.value.on('mouseleave', 'tasks-layer', handleDefaultCursor);
+
+  bootstrapAuth().finally(updateUserLocationMarker);
 });
 
 // Mantener el mapa reactivo si cambian las tareas que nos llegan mediante fetch 
@@ -102,6 +174,9 @@ watch(() => props.tasks, (newTasks) => {
   }
 }, { deep: true });
 
+watch(user, updateUserLocationMarker);
+watch(selectedTask, flyToTask);
+
 onUnmounted(() => {
   if (!map.value) return;
 
@@ -109,6 +184,11 @@ onUnmounted(() => {
   map.value.off('click', 'tasks-layer', handleMapClick);
   map.value.off('mouseenter', 'tasks-layer', handlePointerCursor);
   map.value.off('mouseleave', 'tasks-layer', handleDefaultCursor);
+
+  if (userLocationMarker.value) {
+    userLocationMarker.value.remove();
+    userLocationMarker.value = null;
+  }
 
   // Limpiar capa y origen del mapa al desmontar el componente (por ejemplo cambiar modo)
   if (map.value.getLayer('tasks-layer')) map.value.removeLayer('tasks-layer');

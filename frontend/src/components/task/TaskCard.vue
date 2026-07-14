@@ -73,7 +73,8 @@ const handleDelete = async () => {
     if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
         try {
             const response = await fetch(`${API_BASE}/tasks/${props.id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: "include"
             });
             if (!response.ok) {
                 throw new Error('Error al eliminar la tarea');

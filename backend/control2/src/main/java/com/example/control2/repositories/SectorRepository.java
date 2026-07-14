@@ -16,15 +16,15 @@ public interface SectorRepository extends JpaRepository<SectorEntity, Long> {
      * ¿Cuál es el sector con más tareas completadas en un radio variable del usuario?
      */
     @Query(value = """
-            SELECT s.id, s.name, COUNT(t.id) as completedTasksCount
-            FROM sectors s
-            JOIN tasks t ON ST_Contains(s.geometry, t.location) 
-            WHERE t.status = 'COMPLETED'
-              AND ST_DWithin(CAST(s.geometry AS geography), CAST(:userLocation AS geography), :radiusInMeters)
-            GROUP BY s.id, s.name
-            ORDER BY completedTasksCount DESC
-            LIMIT 1
-            """, nativeQuery = true)
+        SELECT s.id, s.name, COUNT(t.id) as taskCount
+        FROM sectors s
+        JOIN tasks t ON ST_Contains(s.geometry, t.location) 
+        WHERE t.status = 'COMPLETED'
+          AND ST_DWithin(CAST(s.geometry AS geography), CAST(:userLocation AS geography), :radiusInMeters)
+        GROUP BY s.id, s.name
+        ORDER BY taskCount DESC
+        LIMIT 1
+        """, nativeQuery = true)
     SectorTaskCountProjection findTopSectorWithCompletedTasksInRadius(
             @Param("userLocation") org.locationtech.jts.geom.Point userLocation,
             @Param("radiusInMeters") double radiusInMeters

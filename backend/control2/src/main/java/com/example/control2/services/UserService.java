@@ -1,95 +1,59 @@
 package com.example.control2.services;
 
-import com.example.control2.dtos.LoginResponseDTO;
 import com.example.control2.dtos.UserCreateDTO;
 import com.example.control2.dtos.UserResponseDTO;
 import com.example.control2.entities.UserEntity;
 import com.example.control2.enums.UserStatus;
 import com.example.control2.mappers.UserMapper;
 import com.example.control2.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class UserService {
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    // CREAR
-    public UserResponseDTO createUser(UserCreateDTO dto) {
-
-        // Validar si el usuario ya existe
-        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new RuntimeException("El nombre de usuario '" + dto.getUsername() + "' ya está en uso. Por favor, elige otro.");
-        }
-
-        // Mapeo de DTO a Entidad
-        UserEntity newUser = userMapper.toEntity(dto);
-
-        // El usuario nace siempre activo
-        newUser.setStatus(UserStatus.ACTIVE);
-
-        // Guardar en la base de datos
-        UserEntity savedUser = userRepository.save(newUser);
-
-        // Retornar DTO
-        return userMapper.toDTO(savedUser);
+    public UserService(UserRepository userRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
-    // OBTENER TODOS LOS USUARIOS (Paginado)
+    public UserResponseDTO createUser(UserCreateDTO dto) {
+        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
+            throw new RuntimeException("El nombre de usuario '" + dto.getUsername() + "' ya está en uso.");
+        }
+        UserEntity entity = userMapper.toEntity(dto);
+        entity.setStatus(UserStatus.ACTIVE);
+        return userMapper.toDTO(userRepository.save(entity));
+    }
+
     public Page<UserResponseDTO> getAllUsers(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        // Filtrado y paginado directo en la base de datos
-        return userRepository.findByStatus(UserStatus.ACTIVE, pageable)
+        return userRepository.findByStatus(UserStatus.ACTIVE, PageRequest.of(page, size))
                 .map(userMapper::toDTO);
     }
 
-
-    // OBTENER USUARIO POR USERNAME
     public UserResponseDTO getUserByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el username: " + username));
-
-        return userMapper.toDTO(user);
+        return userRepository.findByUsername(username)
+                .map(userMapper::toDTO)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
     }
 
-    // OBTENER USUARIO POR ID
     public UserResponseDTO getUserById(Long id) {
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el ID: " + id));
-
-        return userMapper.toDTO(user);
+        return userRepository.findById(id)
+                .map(userMapper::toDTO)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado ID: " + id));
     }
 
-    // ELIMINACIÓN SEGURA (Lógica)
-    public void deleteUser(Long id) {
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        // Cambiamos el estado a eliminado en lugar de borrar el registro
-        user.setStatus(UserStatus.DELETED);
-        userRepository.save(user);
-    }
-
-    // INICIO DE SESIÓN
     public UserEntity authenticate(String username, String password) {
-        // Buscar al usuario por nombre
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        // Verificar contraseña
         if (!user.getPassword().equals(password)) {
             throw new RuntimeException("Credenciales inválidas");
         }
-
         return user;
     }
 }

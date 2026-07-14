@@ -4,44 +4,30 @@ import com.example.control2.dtos.LoginResponseDTO;
 import com.example.control2.dtos.UserCreateDTO;
 import com.example.control2.dtos.UserResponseDTO;
 import com.example.control2.entities.UserEntity;
-import com.example.control2.security.JwtService;
+import com.example.control2.security.JwtCookieService;
+import com.example.control2.security.JwtTokenProvider;
 import com.example.control2.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import org.springframework.security.core.Authentication;
-
-import java.time.Duration;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    private static final String ACCESS_TOKEN_COOKIE = "access_token";
+    private final UserService userService;
+    private final JwtTokenProvider tokenProvider;
+    private final JwtCookieService cookieService;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private JwtService jwtService;
-
-    @Value("${jwt.expiration}")
-    private Long jwtExpiration;
-
-    private ResponseCookie buildAccessCookie(String token) {
-        return ResponseCookie.from(ACCESS_TOKEN_COOKIE, token)
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ofMillis(jwtExpiration))
-                .build();
+    public UserController(UserService userService,
+                          JwtTokenProvider tokenProvider,
+                          JwtCookieService cookieService) {
+        this.userService = userService;
+        this.tokenProvider = tokenProvider;
+        this.cookieService = cookieService;
     }
 
     @PostMapping("/register")
@@ -50,12 +36,10 @@ public class UserController {
             UserResponseDTO response = userService.createUser(dto);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (RuntimeException e) {
-            // username duplicado
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    // GET ALL USERS
     @GetMapping
     public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
@@ -70,8 +54,6 @@ public class UserController {
         return ResponseEntity.ok(usersPage);
     }
 
-    // OBTENER USUARIO POR USERNAME
-    // GET /api/users/username/{username}
     @GetMapping("/username/{username}")
     public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
         try {
@@ -82,9 +64,6 @@ public class UserController {
         }
     }
 
-
-    // OBTENER USUARIO POR ID
-    // GET /api/users/{id}
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         try {
@@ -96,23 +75,21 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody UserCreateDTO loginDto) {
+    public ResponseEntity<?> loginUser(@RequestBody UserCreateDTO loginDto,
+                                       HttpServletResponse response) {
         try {
             UserEntity user = userService.authenticate(loginDto.getUsername(), loginDto.getPassword());
-            String token = jwtService.generateToken(user.getUsername());
-            ResponseCookie cookie = buildAccessCookie(token);
+            String token = tokenProvider.generateToken(user.getUsername());
+            cookieService.addTokenCookie(response, token);
 
-            LoginResponseDTO response = new LoginResponseDTO(
+            LoginResponseDTO body = new LoginResponseDTO(
                     user.getId(),
                     user.getUsername(),
                     "Login exitoso"
             );
 
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(response);
+            return ResponseEntity.ok(body);
         } catch (RuntimeException e) {
-            // si falla devuelve 401
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
@@ -132,24 +109,13 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE, "")
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body("Logout exitoso");
+    public ResponseEntity<String> logout(HttpServletResponse response) {
+        cookieService.clearTokenCookie(response);
+        return ResponseEntity.ok("Logout exitoso");
     }
 
     @GetMapping("/login")
     public ResponseEntity<String> loginHelp() {
         return ResponseEntity.ok("Use POST /api/users/login with JSON body.");
     }
-
-
 }

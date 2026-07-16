@@ -32,8 +32,8 @@
 import { reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useMapState } from "../composables/useMapState";
+import { apiFetch } from "../services/apiClient";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const router = useRouter();
 const { selectedLocation } = useMapState();
 
@@ -55,10 +55,9 @@ watch(selectedLocation, (coords) => {
 async function handleRegister() {
   registerStatus.value = "Registrando...";
   try {
-    const response = await fetch(`${API_BASE}/users/register`, {
+    const response = await apiFetch("/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify(register)
     });
     if (!response.ok) {

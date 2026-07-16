@@ -111,6 +111,7 @@
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useMapState } from "../../composables/useMapState";
+import { apiFetch } from "../../services/apiClient";
 
 const props = defineProps({
 	mode: { type: String, default: "create" }
@@ -120,8 +121,6 @@ const emit = defineEmits(["saved"]);
 
 const router = useRouter();
 const { selectedLocation, currentMapMode, selectedTask, fetchMapTasks } = useMapState();
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 const statusOptions = [
 	{ label: "Disponible", value: "PENDING" },
@@ -220,9 +219,7 @@ const fetchUsers = async (searchTerm = "") => {
 
 	usersLoading.value = true;
 	try {
-		const response = await fetch(`${API_BASE}/users?page=0&size=100`, {
-			credentials: "include"
-		});
+		const response = await apiFetch("/users?page=0&size=100");
 		if (response.status === 204) {
 			users.value = [];
 			return;
@@ -301,14 +298,13 @@ const submit = async () => {
 
 	try {
 		const url = isEdit.value && selectedTask.value
-			? `${API_BASE}/tasks/${selectedTask.value.id}`
-			: `${API_BASE}/tasks`;
+			? `/tasks/${selectedTask.value.id}`
+			: "/tasks";
 		const method = isEdit.value ? "PUT" : "POST";
 
-		const response = await fetch(url, {
+		const response = await apiFetch(url, {
 			method,
 			headers: { "Content-Type": "application/json" },
-			credentials: "include",
 			body: JSON.stringify(payload)
 		});
 

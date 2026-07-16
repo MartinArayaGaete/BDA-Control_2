@@ -46,8 +46,8 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthState } from "../../composables/useAuthState";
+import { apiFetch } from "../../services/apiClient";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const route = useRoute();
 const isActiveTab = computed(() => route.name === "notifications");
 const { user, bootstrapAuth } = useAuthState();
@@ -71,9 +71,7 @@ const fetchNotifications = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = await fetch(`${API_BASE}/notifications/user/${userId}`, {
-      credentials: "include"
-    });
+    const response = await apiFetch(`/notifications/user/${userId}`);
     if (response.status === 204) {
       notifications.value = [];
       return;
@@ -92,9 +90,8 @@ const fetchNotifications = async () => {
 
 const markAsRead = async (taskId) => {
   try {
-    const response = await fetch(`${API_BASE}/notifications/task/${taskId}/read`, {
-      method: "PATCH",
-      credentials: "include"
+    const response = await apiFetch(`/notifications/task/${taskId}/read`, {
+      method: "PATCH"
     });
     if (!response.ok) {
       throw new Error(await response.text());
@@ -120,7 +117,7 @@ onMounted(() => {
     if (isActiveTab.value) {
       fetchNotifications();
     }
-  }, 20000);
+  }, 5000);
 });
 
 onUnmounted(() => {

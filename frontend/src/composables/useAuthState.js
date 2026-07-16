@@ -1,17 +1,9 @@
 import { computed, ref } from "vue";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+import { apiFetch } from "../services/apiClient";
 
 const user = ref(null);
 const initialized = ref(false);
 const loading = ref(false);
-
-const apiFetch = (path, options = {}) => {
-  return fetch(`${API_BASE}${path}`, {
-    credentials: "include",
-    ...options
-  });
-};
 
 const setUser = (userData) => {
   user.value = userData;

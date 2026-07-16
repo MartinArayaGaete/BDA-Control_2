@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { apiFetch } from "../services/apiClient";
 
 const selectedLocation = ref(null);
 const currentMapMode = ref('viewing_tasks');
@@ -8,14 +9,10 @@ const selectedTask = ref(null);
 const mapTasks = ref([]);
 const mapSectors = ref([]);
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
-
 const fetchMapTasks = async () => {
   try {
       // El get de objetivos geográficos: ligero, trae la primera carga al iniciar la app.
-      const response = await fetch(`${API_BASE}/tasks?page=0&size=1000`, {
-          credentials: "include"
-      });
+      const response = await apiFetch("/tasks?page=0&size=1000");
       if (response.status === 204) {
           mapTasks.value = [];
           return;
@@ -30,9 +27,7 @@ const fetchMapTasks = async () => {
 const fetchMapSectors = async () => {
   try {
       // El get de sectores geográficos: ligero, trae la primera carga al iniciar la app.
-      const response = await fetch(`${API_BASE}/sectors?page=0&size=1000`, {
-          credentials: "include"
-      });
+      const response = await apiFetch("/sectors?page=0&size=1000");
       if (response.status === 204) {
           mapSectors.value = [];
           return;
@@ -47,9 +42,7 @@ const fetchMapSectors = async () => {
 // Función para actualizar EXCLUSIVAMENTE un punto en el mapa (cuando se edita o crea desde la tabla/formulario)
 const fetchSingleMapTask = async (id) => {
   try {
-      const response = await fetch(`${API_BASE}/tasks/${id}`, {
-          credentials: "include"
-      });
+      const response = await apiFetch(`/tasks/${id}`);
       if (!response.ok) return;
       const taskData = await response.json();
       

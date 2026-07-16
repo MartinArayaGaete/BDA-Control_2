@@ -166,8 +166,8 @@
 import { computed, onMounted, ref } from "vue";
 import { useAuthState } from "../../composables/useAuthState";
 import StatisticTables from "./StatisticTables.vue";
+import { apiFetch } from "../../services/apiClient";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const { user, bootstrapAuth } = useAuthState();
 
 const averageDistance = ref(null);
@@ -224,9 +224,7 @@ const fetchAverageDistance = async () => {
   error.value = "";
 
   try {
-    const response = await fetch(`${API_BASE}/tasks/stats/average-distance/${userId}`, {
-      credentials: "include"
-    });
+    const response = await apiFetch(`/tasks/stats/average-distance/${userId}`);
 
     if (response.status === 204) {
       averageDistance.value = null;
@@ -263,9 +261,7 @@ const fetchSectorStats = async () => {
   error.value = "";
 
   try {
-    const response = await fetch(`${API_BASE}/tasks/stats/user/${userId}`, {
-      credentials: "include"
-    });
+    const response = await apiFetch(`/tasks/stats/user/${userId}`);
 
     if (response.status === 204) {
       sectorStats.value = [];
@@ -299,9 +295,7 @@ const fetchTopSectorsByRadius = async () => {
   try {
     const sectors = await Promise.all(
       TOP_SECTOR_RADII_KM.map(async (radiusKm) => {
-        const response = await fetch(`${API_BASE}/sectors/stats/top-sector/${userId}?radiusKm=${radiusKm}.0`, {
-          credentials: "include"
-        });
+        const response = await apiFetch(`/sectors/stats/top-sector/${userId}?radiusKm=${radiusKm}.0`);
 
         if (response.status === 204) {
           return {

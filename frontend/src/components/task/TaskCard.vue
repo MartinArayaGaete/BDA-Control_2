@@ -41,6 +41,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { apiFetch } from "../../services/apiClient";
 
 const props = defineProps({
     id: [String, Number],
@@ -52,8 +53,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['taskDeleted', 'taskEdit', 'taskSelect']);
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 const statusDisplay = computed(() => {
     switch (props.status) {
@@ -76,9 +75,8 @@ const handleSelect = () => {
 const handleDelete = async () => {
     if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
         try {
-            const response = await fetch(`${API_BASE}/tasks/${props.id}`, {
-                method: 'DELETE',
-                credentials: "include"
+            const response = await apiFetch(`/tasks/${props.id}`, {
+                method: 'DELETE'
             });
             if (!response.ok) {
                 throw new Error('Error al eliminar la tarea');

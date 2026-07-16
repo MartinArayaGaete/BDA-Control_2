@@ -8,6 +8,9 @@ import com.example.control2.security.JwtCookieService;
 import com.example.control2.security.JwtTokenProvider;
 import com.example.control2.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.web.csrf.CsrfToken;
+import java.util.Collections;
+import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -117,5 +120,13 @@ public class UserController {
     @GetMapping("/login")
     public ResponseEntity<String> loginHelp() {
         return ResponseEntity.ok("Use POST /api/users/login with JSON body.");
+    }
+
+    @GetMapping("/csrf")
+    public ResponseEntity<Map<String, String>> csrf(CsrfToken token) {
+        if (token == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(Collections.singletonMap("token", token.getToken()));
     }
 }

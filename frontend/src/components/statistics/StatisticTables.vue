@@ -50,8 +50,7 @@
 import { computed, ref, watch } from "vue";
 import SectorPendingConcentrationTable from "./SectorPendingConcentrationTable.vue";
 import TaskPerSectorTable from "./TaskPerSectorTable.vue";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+import { apiFetch } from "../../services/apiClient";
 
 const TABLES = {
   "pending-concentration": {
@@ -94,9 +93,7 @@ const fetchTableData = async () => {
   error.value = "";
 
   try {
-    const response = await fetch(`${API_BASE}${activeTable.value.endpoint}`, {
-      credentials: "include"
-    });
+    const response = await apiFetch(activeTable.value.endpoint);
 
     if (currentRequestId !== requestId) {
       return;

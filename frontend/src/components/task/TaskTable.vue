@@ -98,12 +98,11 @@ import { useRouter } from "vue-router";
 import TaskCard from "./TaskCard.vue";
 import { useMapState } from "../../composables/useMapState";
 import { useAuthState } from "../../composables/useAuthState";
+import { apiFetch } from "../../services/apiClient";
 
 const router = useRouter();
 const { currentMapMode, selectedTask, removeMapTaskPoint } = useMapState();
 const { user, bootstrapAuth } = useAuthState();
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 const tasks = ref([]);
 const tasksLoading = ref(false);
@@ -132,7 +131,7 @@ const getUserId = () => user.value?.id ?? null;
 const fetchTasks = async () => {
     tasksLoading.value = true;
     try {
-        let url = `${API_BASE}/tasks`;
+        let url = "/tasks";
         
         // Si hay algún filtro, usamos el endpoint /search
         if (searchKeyword.value || searchStatus.value) {
@@ -144,9 +143,7 @@ const fetchTasks = async () => {
             url += `?page=${page.value - 1}&size=${size.value}`;
         }
         
-        const response = await fetch(url, {
-          credentials: "include"
-        });
+        const response = await apiFetch(url);
         
         if (response.status === 204) {
             tasks.value = [];
@@ -177,9 +174,7 @@ const fetchNearestPendingTask = async () => {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/tasks/closest/${userId}`, {
-          credentials: "include"
-        });
+        const response = await apiFetch(`/tasks/closest/${userId}`);
         
         if (response.status === 204) {
             tasks.value = [];

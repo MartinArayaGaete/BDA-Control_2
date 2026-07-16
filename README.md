@@ -134,7 +134,7 @@ La aplicación permite validar estas actividades:
 
 **Base URL:** `http://localhost:8080/api`
 
-> La API usa JWT. Para endpoints protegidos, agrega el header:
+> La API usa JWT y, en el login, también deja el token en una cookie. Para endpoints protegidos, agrega el header:
 >
 > `Authorization: Bearer <TU_TOKEN>`
 
@@ -168,10 +168,47 @@ La aplicación permite validar estas actividades:
 }
 ```
 
+- Respuesta: `id`, `username` y mensaje de éxito. También setea la cookie del token.
+
+#### Ayuda de login
+
+- URL: `/api/users/login`
+- Método: `GET`
+- Respuesta: texto de ayuda para usar `POST /api/users/login`.
+
 #### Listar usuarios
 
-- URL: `/api/users`
+- URL: `/api/users?page=0&size=10`
 - Método: `GET`
+- Respuesta: página de usuarios.
+
+#### Buscar usuario por ID
+
+- URL: `/api/users/{id}`
+- Método: `GET`
+
+#### Buscar usuario por nombre
+
+- URL: `/api/users/username/{username}`
+- Método: `GET`
+
+#### Usuario autenticado
+
+- URL: `/api/users/me`
+- Método: `GET`
+- Requiere autenticación válida.
+
+#### Cerrar sesión
+
+- URL: `/api/users/logout`
+- Método: `POST`
+- Limpia la cookie del token.
+
+#### Token CSRF
+
+- URL: `/api/users/csrf`
+- Método: `GET`
+- Útil si necesitas leer el token CSRF expuesto por Spring.
 
 ### 2. Sectores
 
@@ -190,13 +227,43 @@ La aplicación permite validar estas actividades:
 
 #### Listar sectores
 
-- URL: `/api/sectors`
+- URL: `/api/sectors?page=0&size=10`
+- Método: `GET`
+- Respuesta: página de sectores.
+
+#### Buscar sector por ID
+
+- URL: `/api/sectors/{id}`
 - Método: `GET`
 
-#### Sector con más tareas completadas en 2 km
+#### Actualizar sector
 
-- URL: `/api/sectors/stats/top-sector/{userId}`
+- URL: `/api/sectors/{id}`
+- Método: `PUT`
+- Body: mismo formato que en crear sector.
+
+#### Eliminar sector
+
+- URL: `/api/sectors/{id}`
+- Método: `DELETE`
+- Si el sector tiene tareas asociadas, el backend responde conflicto.
+
+#### Sector con más tareas completadas cerca del usuario
+
+- URL: `/api/sectors/stats/top-sector/{userId}?radiusKm=2.0`
 - Método: `GET`
+- `radiusKm` es opcional.
+
+#### Concentración de tareas pendientes por sector
+
+- URL: `/api/sectors/stats/concentration`
+- Método: `GET`
+
+#### Sector por punto del mapa
+
+- URL: `/api/sectors/point?lng=-70.665&lat=-33.528`
+- Método: `GET`
+- Devuelve el sector que contiene el punto, o `404` si no pertenece a ninguno.
 
 ### 3. Tareas
 
@@ -220,13 +287,20 @@ La aplicación permite validar estas actividades:
 
 #### Listar tareas
 
-- URL: `/api/tasks`
+- URL: `/api/tasks?page=0&size=10`
+- Método: `GET`
+- Respuesta: página de tareas.
+
+#### Buscar tarea por ID
+
+- URL: `/api/tasks/{id}`
 - Método: `GET`
 
 #### Actualizar tarea
 
 - URL: `/api/tasks/{id}`
 - Método: `PUT`
+- Body: mismo formato que en crear tarea.
 
 #### Eliminar tarea
 
@@ -238,9 +312,35 @@ La aplicación permite validar estas actividades:
 - URL: `/api/tasks/{id}/complete?userId={userId}`
 - Método: `PATCH`
 
+#### Asignar tarea a un usuario
+
+- URL: `/api/tasks/{id}/assign?userId={userId}`
+- Método: `PATCH`
+
 #### Listar tareas por usuario
 
-- URL: `/api/tasks/user/{userId}`
+- URL: `/api/tasks/user/{userId}?page=0&size=10`
+- Método: `GET`
+
+#### Buscar tareas por filtros
+
+- URL: `/api/tasks/filter?status=PENDING&sectorId=1&page=0&size=10`
+- Método: `GET`
+- `status` y `sectorId` son opcionales.
+
+#### Buscar tareas por palabra clave o estado
+
+- URL: `/api/tasks/search?status=PENDING&keyword=luz&page=0&size=10`
+- Método: `GET`
+
+#### Tareas cercanas a un punto
+
+- URL: `/api/tasks/nearby?lng=-70.665&lat=-33.528&radiusKm=5.0&page=0&size=10`
+- Método: `GET`
+
+#### Tarea pendiente más cercana al usuario
+
+- URL: `/api/tasks/closest/{userId}`
 - Método: `GET`
 
 #### Tareas hechas por usuario por sector
@@ -248,15 +348,42 @@ La aplicación permite validar estas actividades:
 - URL: `/api/tasks/stats/user/{userId}`
 - Método: `GET`
 
-#### Tarea pendiente más cercana
+#### Tareas hechas por todos los usuarios por sector
 
-- URL: `/api/tasks/closest/{userId}`
+- URL: `/api/tasks/stats/users-sectors`
 - Método: `GET`
 
 #### Promedio de distancia de tareas completadas
 
 - URL: `/api/tasks/stats/average-distance/{userId}`
 - Método: `GET`
+
+### 4. Notificaciones
+
+#### Notificaciones activas de un usuario
+
+- URL: `/api/notifications/user/{userId}`
+- Método: `GET`
+- Devuelve las notificaciones no leídas ordenadas de más reciente a más antigua.
+
+#### Marcar notificación como leída por tarea
+
+- URL: `/api/notifications/task/{taskId}/read`
+- Método: `PATCH`
+
+## Ruta rápida de pruebas
+
+Si quieres probar todo de forma ordenada, sigue este flujo:
+
+1. Hacer login con `admin / pass123`.
+2. Verificar el usuario autenticado con `/api/users/me`.
+3. Listar usuarios con `/api/users?page=0&size=10`.
+4. Listar sectores con `/api/sectors?page=0&size=10` y probar `/api/sectors/point`.
+5. Crear una tarea con `/api/tasks` y luego buscarla con `/api/tasks/{id}`.
+6. Probar filtros con `/api/tasks/search`, `/api/tasks/filter` y `/api/tasks/nearby`.
+7. Marcar una tarea como completada con `/api/tasks/{id}/complete?userId={userId}`.
+8. Revisar estadísticas con `/api/tasks/stats/user/{userId}`, `/api/tasks/stats/users-sectors`, `/api/tasks/stats/average-distance/{userId}` y `/api/sectors/stats/top-sector/{userId}`.
+9. Revisar notificaciones con `/api/notifications/user/{userId}` y marcarlas leídas con `/api/notifications/task/{taskId}/read`.
 
 ## Ejemplos de uso en pruebas
 

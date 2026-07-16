@@ -1,17 +1,17 @@
 <template>
-  <div class="d-flex flex-column ga-4 h-100">
+  <div class="statistics-panel d-flex flex-column ga-4 h-100">
     <v-alert v-if="error" type="error" variant="tonal">
       {{ error }}
     </v-alert>
 
     <!-- Pregunta 4, 8 -->
-    <v-card text="Promedio de distancia de tus tareas completadas respecto tu ubicación:">
+    <v-card text="Promedio de distancia de tus tareas completadas respecto tu ubicación">
       <v-card-text>
         <v-icon left>mdi-map-marker-distance</v-icon> {{ averageDistanceLabel }}
       </v-card-text>
     </v-card>
     
-    <v-card text="Promedio de distancia de tus tareas completadas respecto a la ubicación registrada:">
+    <v-card text="Promedio de distancia de tus tareas completadas respecto a la ubicación registrada">
       <v-card-text>
         <v-icon left>mdi-map-marker-distance</v-icon> {{ averageDistanceLabel }}
       </v-card-text>
@@ -22,7 +22,7 @@
       <v-expansion-panel>
         <v-expansion-panel-title collapse-icon="mdi-minus" expand-icon="mdi-plus">
           <v-icon class="mr-2">mdi-map</v-icon>
-          Sectores con más tareas completadas por radio
+          Los sectores con más tareas completadas alrededor de tu ubicación 
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-list v-if="topSectorsByRadius.length > 0" lines="two">
@@ -35,12 +35,16 @@
               </template>
 
               <v-list-item-title>
-                Radio: {{ sector.radiusKm }} km
+                En el alrededor de {{ sector.radiusKm }} km
               </v-list-item-title>
 
-              <v-list-item-subtitle>
-                Sector: {{ sector.name || "Sin datos" }}
+              <v-list-item-subtitle v-if="sector.name">
+                El sector {{ sector.name || "Sin datos" }} tiene más tareas completadas, con un total de {{ sector.taskCount || 0 }} tareas completadas.
               </v-list-item-subtitle>
+              <v-list-item-subtitle v-else>
+                No hay sectores con tareas completadas en este radio.
+              </v-list-item-subtitle>
+
             </v-list-item>
           </v-list>
 
@@ -95,18 +99,65 @@
       </v-expansion-panel>
     </v-expansion-panels>
 
-    <!-- Pregunta 5 -->
-    <v-card text="">
-      <v-card-text>
+    <v-card
+      class="statistics-action-card"
+      role="button"
+      tabindex="0"
+      @click="openStatisticsTable('pending-concentration')"
+      @keydown.enter.prevent="openStatisticsTable('pending-concentration')"
+      @keydown.space.prevent="openStatisticsTable('pending-concentration')"
+    >
+      <v-card-text class="d-flex align-center ga-3">
+        <v-avatar color="warning" variant="tonal" size="40">
+          <v-icon>mdi-map-search</v-icon>
+        </v-avatar>
+
+        <div class="flex-grow-1">
+          <div class="text-subtitle-1 font-weight-medium">
+            Sectores con más tareas pendientes
+          </div>
+          <div class="text-body-2 text-medium-emphasis">
+            Ver concentración geográfica de tareas pendientes
+          </div>
+        </div>
+
+        <v-icon color="medium-emphasis">mdi-chevron-right</v-icon>
       </v-card-text>
     </v-card>
 
-    <!-- Pregunta 6 -->
-    <v-card text="">
-      <v-card-text>
+    <v-card
+      class="statistics-action-card"
+      role="button"
+      tabindex="0"
+      @click="openStatisticsTable('tasks-users-sector')"
+      @keydown.enter.prevent="openStatisticsTable('tasks-users-sector')"
+      @keydown.space.prevent="openStatisticsTable('tasks-users-sector')"
+    >
+      <v-card-text class="d-flex align-center ga-3">
+        <v-avatar color="success" variant="tonal" size="40">
+          <v-icon>mdi-account-group</v-icon>
+        </v-avatar>
+
+        <div class="flex-grow-1">
+          <div class="text-subtitle-1 font-weight-medium">
+            Tareas realizadas por usuario y sector
+          </div>
+          <div class="text-body-2 text-medium-emphasis">
+            Ver usuarios agrupados por sector y cantidad completada
+          </div>
+        </div>
+
+        <v-icon color="medium-emphasis">mdi-chevron-right</v-icon>
       </v-card-text>
     </v-card>
 
+    <v-dialog v-model="isStatisticsTableOpen" max-width="760" scrollable>
+      <StatisticTables
+        v-if="selectedStatisticsTable"
+        :table="selectedStatisticsTable"
+        @close="closeStatisticsTable"
+      />
+    </v-dialog>
   </div>
 </template>
 
@@ -114,6 +165,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useAuthState } from "../../composables/useAuthState";
+import StatisticTables from "./StatisticTables.vue";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const { user, bootstrapAuth } = useAuthState();
@@ -125,6 +177,7 @@ const sectorStatsLoading = ref(false);
 const topSectorsByRadius = ref([]);
 const topSectorsLoading = ref(false);
 const error = ref("");
+const selectedStatisticsTable = ref(null);
 
 const TOP_SECTOR_RADII_KM = [2, 5];
 
@@ -139,6 +192,23 @@ const averageDistanceLabel = computed(() => {
 
   return `${averageDistance.value.toFixed(2)} km`;
 });
+
+const isStatisticsTableOpen = computed({
+  get: () => selectedStatisticsTable.value !== null,
+  set: (isOpen) => {
+    if (!isOpen) {
+      selectedStatisticsTable.value = null;
+    }
+  }
+});
+
+const openStatisticsTable = (table) => {
+  selectedStatisticsTable.value = table;
+};
+
+const closeStatisticsTable = () => {
+  selectedStatisticsTable.value = null;
+};
 
 const getUserId = () => user.value?.id ?? null;
 
@@ -236,7 +306,8 @@ const fetchTopSectorsByRadius = async () => {
         if (response.status === 204) {
           return {
             radiusKm,
-            name: null
+            name: null,
+            taskCount: null
           };
         }
 
@@ -247,7 +318,8 @@ const fetchTopSectorsByRadius = async () => {
         const sector = await response.json();
         return {
           radiusKm,
-          name: sector.name ?? null
+          name: sector.name ?? null,
+          taskCount: sector.taskCount ?? 0
         };
       })
     );
@@ -275,5 +347,15 @@ onMounted(() => {
 .statistics-panel {
   height: 100%;
   width: 100%;
+}
+
+.statistics-action-card {
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.statistics-action-card:hover,
+.statistics-action-card:focus-visible {
+  transform: translateY(-1px);
 }
 </style>

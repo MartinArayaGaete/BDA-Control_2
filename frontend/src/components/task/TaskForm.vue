@@ -23,7 +23,7 @@
 							required
 						/>
 					</v-col>
-					<v-col cols="12"> <!-- TODO: IMPLEMENTAR LARGO MAXIMO DE 255 CARACTERES -->
+					<v-col cols="12">
 						<v-textarea
 							v-model="form.description"
 							label="Descripcion"

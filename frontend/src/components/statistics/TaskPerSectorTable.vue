@@ -10,7 +10,7 @@
 
         <v-spacer />
 
-        <v-chip color="primary" variant="flat" size="small" prepend-icon="mdi-clipboard-check">
+        <v-chip color="primary" variant="flat" size="default" prepend-icon="mdi-clipboard-check">
           {{ sector.totalTasks }}
         </v-chip>
       </v-expansion-panel-title>
@@ -30,7 +30,7 @@
             </v-list-item-title>
 
             <template #append>
-              <v-chip color="success" variant="tonal" size="small" prepend-icon="mdi-check-circle">
+              <v-chip color="success" variant="tonal" size="default" prepend-icon="mdi-check-circle">
                 {{ user.taskCount }}
               </v-chip>
             </template>

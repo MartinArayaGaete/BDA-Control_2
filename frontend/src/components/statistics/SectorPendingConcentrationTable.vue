@@ -24,7 +24,7 @@
       </v-list-item-subtitle>
 
       <template #append>
-        <v-chip color="warning" variant="flat" size="small" prepend-icon="mdi-clipboard-alert">
+        <v-chip color="warning" variant="flat" size="default" prepend-icon="mdi-clipboard-alert">
           {{ sector.taskCount }}
         </v-chip>
       </template>

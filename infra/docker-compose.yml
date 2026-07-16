@@ -27,7 +27,7 @@ services:
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: admin
       JWT_SECRET: EstaEsUnaClaveSecretaMuyLargaDeAlMenos256BitsParaElTokenJWT
-      JWT_EXPIRATION: 86400000
+      JWT_EXPIRATION: 1200000
     ports:
       - "8080:8080"
     depends_on:
@@ -39,9 +39,11 @@ services:
     working_dir: /app
     volumes:
       - ../frontend:/app
-    command: sh -c "corepack enable && pnpm install && pnpm run dev --host 0.0.0.0 --port 5173"
+      - frontend_node_modules:/app/node_modules
+    command: sh -c "corepack enable && pnpm install --ignore-scripts --config.confirmModulesPurge=false && find node_modules/.pnpm -path '*/bin/*' -type f -exec chmod 755 {} + && pnpm run dev --host 0.0.0.0 --port 5173"
     environment:
       TZ: America/Santiago
+      CI: "true"
       VITE_API_BASE_URL: http://localhost:8080/api
     ports:
       - "5173:5173"
@@ -51,3 +53,4 @@ services:
 volumes:
   postgres_data:
   maven_cache:
+  frontend_node_modules:
